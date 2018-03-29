@@ -534,6 +534,52 @@ class Mqtt5UnsubAckDecoderTest extends AbstractMqtt5DecoderTest {
         decodeOk(encoded);
     }
 
+    @Test
+    void decode_requestProblemInformationFalse_throwsIfReasonStringSet() {
+        createClientConnectionDataWithoutProblemInfo();
+        final byte[] encoded = {
+                // fixed header
+                //   type, flags
+                (byte) 0b1011_0000,
+                //   remaining length
+                14,
+                // variable header
+                //   packet identifier
+                0, 5,
+                //   properties
+                10,
+                // reason string
+                0x1F, 0, 7, 's', 'u', 'c', 'c', 'e', 's', 's',
+                // payload
+                0x00
+        };
+
+        decodeNok(encoded, Mqtt5DisconnectReasonCode.PROTOCOL_ERROR);
+    }
+
+    @Test
+    void decode_requestProblemInformationFalse_throwsIfUserPropertiesSet() {
+        createClientConnectionDataWithoutProblemInfo();
+        final byte[] encoded = {
+                // fixed header
+                //   type, flags
+                (byte) 0b1011_0000,
+                //   remaining length
+                18,
+                // variable header
+                //   packet identifier
+                0, 5,
+                //   properties
+                14,
+                // user properties
+                0x26, 0, 4, 't', 'e', 's', 't', 0, 5, 'v', 'a', 'l', 'u', 'e',
+                // payload
+                0x00
+        };
+
+        decodeNok(encoded, Mqtt5DisconnectReasonCode.PROTOCOL_ERROR);
+    }
+
     @NotNull
     private MqttUnsubAck decodeOk(final byte[] encoded) {
         final MqttUnsubAck unsubAck = decode(encoded);

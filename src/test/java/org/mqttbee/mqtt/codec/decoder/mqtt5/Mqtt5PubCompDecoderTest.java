@@ -309,6 +309,58 @@ class Mqtt5PubCompDecoderTest extends AbstractMqtt5DecoderTest {
         testDisconnect(Mqtt5DisconnectReasonCode.MALFORMED_PACKET, sendReasonString);
     }
 
+    @Test
+    void decode_requestProblemInformationFalse_throwsIfReasonStringSet() {
+        createClientConnectionDataWithoutProblemInfo();
+        final ByteBuf byteBuf = channel.alloc().buffer();
+        // fixed header
+        //   type, flags
+        byteBuf.writeByte(0b0111_0000);
+        //   remaining length
+        byteBuf.writeByte(14);
+        // variable header
+        //   packet identifier
+        byteBuf.writeByte(0).writeByte(5);
+        //   reason code (success)
+        byteBuf.writeByte(0x00);
+        //   properties
+        byteBuf.writeByte(10);
+        // reason string
+        byteBuf.writeBytes(new byte[]{0x1F, 0, 7, 's', 'u', 'c', 'c', 'e', 's', 's'});
+        // padding, e.g. next message
+        byteBuf.writeByte(0b0111_0000);
+
+        channel.writeInbound(byteBuf);
+
+        testDisconnect(Mqtt5DisconnectReasonCode.PROTOCOL_ERROR, false);
+    }
+
+    @Test
+    void decode_requestProblemInformationFalse_throwsIfUserPropertiesSet() {
+        createClientConnectionDataWithoutProblemInfo();
+        final ByteBuf byteBuf = channel.alloc().buffer();
+        // fixed header
+        //   type, flags
+        byteBuf.writeByte(0b0111_0000);
+        //   remaining length
+        byteBuf.writeByte(18);
+        // variable header
+        //   packet identifier
+        byteBuf.writeByte(0).writeByte(5);
+        //   reason code (success)
+        byteBuf.writeByte(0x00);
+        //   properties
+        byteBuf.writeByte(14);
+        // user properties
+        byteBuf.writeBytes(new byte[]{0x26, 0, 4, 't', 'e', 's', 't', 0, 5, 'v', 'a', 'l', 'u', 'e',});
+        // padding, e.g. next message
+        byteBuf.writeByte(0b0100_0000);
+
+        channel.writeInbound(byteBuf);
+
+        testDisconnect(Mqtt5DisconnectReasonCode.PROTOCOL_ERROR, false);
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"false", "true"})
     void decode_wrong_reason_code(final boolean sendReasonString) {

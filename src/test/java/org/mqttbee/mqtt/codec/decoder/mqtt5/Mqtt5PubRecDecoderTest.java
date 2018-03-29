@@ -387,6 +387,52 @@ class Mqtt5PubRecDecoderTest extends AbstractMqtt5DecoderTest {
         decodeNok(encoded, Mqtt5DisconnectReasonCode.MALFORMED_PACKET);
     }
 
+    @Test
+    void decode_requestProblemInformationFalse_throwsIfReasonStringSet() {
+        createClientConnectionDataWithoutProblemInfo();
+        final byte[] encoded = {
+                // fixed header
+                //   type, flags
+                0b0111_0000,
+                //   remaining length
+                14,
+                // variable header
+                //   packet identifier
+                0, 5,
+                // reason code
+                0x00,
+                //   properties
+                10,
+                // reason string
+                0x1F, 0, 7, 's', 'u', 'c', 'c', 'e', 's', 's'
+        };
+
+        decodeNok(encoded, Mqtt5DisconnectReasonCode.PROTOCOL_ERROR);
+    }
+
+    @Test
+    void decode_requestProblemInformationFalse_throwsIfUserPropertiesSet() {
+        createClientConnectionDataWithoutProblemInfo();
+        final byte[] encoded = {
+                // fixed header
+                //   type, flags
+                0b0111_0000,
+                //   remaining length
+                18,
+                // variable header
+                //   packet identifier
+                0, 5,
+                // reason code
+                0x00,
+                //   properties
+                14,
+                // user properties
+                0x26, 0, 4, 't', 'e', 's', 't', 0, 5, 'v', 'a', 'l', 'u', 'e'
+        };
+
+        decodeNok(encoded, Mqtt5DisconnectReasonCode.PROTOCOL_ERROR);
+    }
+
     @NotNull
     private MqttPubRec decodeOk(final byte[] encoded) {
         final MqttPubRec pubRec = decode(encoded);

@@ -13,6 +13,8 @@ import org.mqttbee.mqtt5.ioc.ChannelComponent;
 
 import java.util.Objects;
 
+import static org.mqttbee.api.mqtt.mqtt5.message.connect.Mqtt5ConnectRestrictions.DEFAULT_MAXIMUM_PACKET_SIZE_NO_LIMIT;
+
 /**
  * @author Silvio Giebl
  */
@@ -32,7 +34,7 @@ abstract class AbstractMqtt5DecoderTest extends AbstractMqttDecoderTest {
         super.createChannel();
         clientData.to(channel);
         ChannelComponent.create(channel, clientData);
-        createClientConnectionData(Mqtt5ConnectRestrictions.DEFAULT_MAXIMUM_PACKET_SIZE_NO_LIMIT);
+        createClientConnectionData(DEFAULT_MAXIMUM_PACKET_SIZE_NO_LIMIT);
     }
 
     void createClientConnectionData(final int maximumPacketSize) {
@@ -41,4 +43,9 @@ abstract class AbstractMqtt5DecoderTest extends AbstractMqttDecoderTest {
                         maximumPacketSize, null, false, true, true, channel));
     }
 
+    void createClientConnectionDataWithoutProblemInfo() {
+        clientData.setClientConnectionData(
+                new MqttClientConnectionDataImpl(10, 10, Mqtt5ConnectRestrictions.DEFAULT_RECEIVE_MAXIMUM, 3,
+                        DEFAULT_MAXIMUM_PACKET_SIZE_NO_LIMIT, null, false, false, true, channel));
+    }
 }

@@ -983,6 +983,55 @@ class Mqtt5AuthDecoderTest extends AbstractMqtt5DecoderTest {
         testDisconnect(Mqtt5DisconnectReasonCode.MALFORMED_PACKET, sendReasonString);
     }
 
+    @Test
+    void decode_requestProblemInformationFalse_throwsIfReasonStringSet() {
+        createClientConnectionDataWithoutProblemInfo();
+        final ByteBuf byteBuf = channel.alloc().buffer();
+        // fixed header
+        //   type, flags
+        byteBuf.writeByte(0b1111_0000);
+        //   remaining length
+        byteBuf.writeByte(23);
+        //   reason code (continue)
+        byteBuf.writeByte(0x18);
+        //   properties
+        byteBuf.writeByte(21);
+        //     auth method
+        byteBuf.writeBytes(new byte[]{0x15, 0, 8, 'G', 'S', '2', '-', 'K', 'R', 'B', '5'});
+        // reason string
+        byteBuf.writeBytes(new byte[]{0x1F, 0, 7, 's', 'u', 'c', 'c', 'e', 's', 's'});
+        // padding, e.g. next message
+        byteBuf.writeByte(0b0100_0000);
+
+        channel.writeInbound(byteBuf);
+
+        testDisconnect(Mqtt5DisconnectReasonCode.PROTOCOL_ERROR, false);
+    }
+
+    @Test
+    void decode_requestProblemInformationFalse_throwsIfUserPropertiesSet() {
+        createClientConnectionDataWithoutProblemInfo();
+        final ByteBuf byteBuf = channel.alloc().buffer();
+        // fixed header
+        //   type, flags
+        byteBuf.writeByte(0b1111_0000);
+        //   remaining length
+        byteBuf.writeByte(16);
+        // variable header
+        //   reason code (continue)
+        byteBuf.writeByte(0x18);
+        //   properties
+        byteBuf.writeByte(14);
+        // user properties
+        byteBuf.writeBytes(new byte[]{0x26, 0, 4, 't', 'e', 's', 't', 0, 5, 'v', 'a', 'l', 'u', 'e',});
+        // padding, e.g. next message
+        byteBuf.writeByte(0b0100_0000);
+
+        channel.writeInbound(byteBuf);
+
+        testDisconnect(Mqtt5DisconnectReasonCode.PROTOCOL_ERROR, false);
+    }
+
     private void testDisconnect(final Mqtt5DisconnectReasonCode reasonCode, final boolean sendReasonString) {
         final Mqtt5Auth auth = channel.readInbound();
         assertNull(auth);
