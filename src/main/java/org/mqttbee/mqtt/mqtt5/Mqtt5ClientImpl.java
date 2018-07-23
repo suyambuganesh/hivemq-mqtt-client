@@ -39,6 +39,7 @@ import org.mqttbee.api.mqtt.mqtt5.message.subscribe.suback.Mqtt5SubAck;
 import org.mqttbee.api.mqtt.mqtt5.message.unsubscribe.Mqtt5Unsubscribe;
 import org.mqttbee.api.mqtt.mqtt5.message.unsubscribe.unsuback.Mqtt5UnsubAck;
 import org.mqttbee.mqtt.MqttClientConnectionData;
+import org.mqttbee.mqtt.MqttClientConnectionState;
 import org.mqttbee.mqtt.MqttClientData;
 import org.mqttbee.mqtt.handler.auth.MqttReAuthEvent;
 import org.mqttbee.mqtt.handler.disconnect.MqttDisconnectUtil;
@@ -77,13 +78,9 @@ public class Mqtt5ClientImpl implements Mqtt5Client {
         final MqttConnect mqttConnect = MustNotBeImplementedUtil.checkNotImplemented(connect, MqttConnect.class);
 
         return Single.<Mqtt5ConnAck>create(connAckEmitter -> {
-            if (!clientData.setConnecting(true)) {
-                connAckEmitter.onError(new AlreadyConnectedException(true));
-                return;
-            }
-            if (clientData.isConnected()) {
-                clientData.setConnecting(false);
-                connAckEmitter.onError(new AlreadyConnectedException(false));
+            if (!clientData.getRawConnectionState()
+                    .compareAndSet(MqttClientConnectionState.DISCONNECTED, MqttClientConnectionState.CONNECTING)) {
+                connAckEmitter.onError(new AlreadyConnectedException());
                 return;
             }
 
@@ -100,8 +97,7 @@ public class Mqtt5ClientImpl implements Mqtt5Client {
                 }
             });
         }).doOnSuccess(connAck -> {
-            clientData.setConnected(true);
-            clientData.setConnecting(false);
+            clientData.getRawConnectionState().set(MqttClientConnectionState.CONNECTED);
 
             final MqttClientConnectionData clientConnectionData = clientData.getRawClientConnectionData();
             assert clientConnectionData != null;
@@ -109,14 +105,14 @@ public class Mqtt5ClientImpl implements Mqtt5Client {
                 MqttBeeComponent.INSTANCE.nettyBootstrap().free(clientData.getExecutorConfig());
                 clientData.setClientConnectionData(null);
                 clientData.setServerConnectionData(null);
-                clientData.setConnected(false);
+                clientData.getRawConnectionState().set(MqttClientConnectionState.DISCONNECTED);
             });
         }).doOnError(throwable -> {
             if (!(throwable instanceof AlreadyConnectedException)) {
                 MqttBeeComponent.INSTANCE.nettyBootstrap().free(clientData.getExecutorConfig());
                 clientData.setClientConnectionData(null);
                 clientData.setServerConnectionData(null);
-                clientData.setConnecting(false);
+                clientData.getRawConnectionState().set(MqttClientConnectionState.DISCONNECTED);
             }
         }).observeOn(clientData.getExecutorConfig().getApplicationScheduler());
     }
