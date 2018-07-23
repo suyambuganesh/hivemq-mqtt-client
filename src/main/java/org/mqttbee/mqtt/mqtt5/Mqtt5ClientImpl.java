@@ -40,7 +40,6 @@ import org.mqttbee.api.mqtt.mqtt5.message.unsubscribe.Mqtt5Unsubscribe;
 import org.mqttbee.api.mqtt.mqtt5.message.unsubscribe.unsuback.Mqtt5UnsubAck;
 import org.mqttbee.mqtt.MqttClientConnectionData;
 import org.mqttbee.mqtt.MqttClientData;
-import org.mqttbee.mqtt.handler.MqttChannelInitializer;
 import org.mqttbee.mqtt.handler.auth.MqttReAuthEvent;
 import org.mqttbee.mqtt.handler.disconnect.MqttDisconnectUtil;
 import org.mqttbee.mqtt.handler.publish.MqttGlobalIncomingPublishFlowable;
@@ -88,10 +87,12 @@ public class Mqtt5ClientImpl implements Mqtt5Client {
                 return;
             }
 
-            final Bootstrap bootstrap =
-                    MqttBeeComponent.INSTANCE.nettyBootstrap().bootstrap(clientData.getExecutorConfig());
-
-            bootstrap.handler(new MqttChannelInitializer(mqttConnect, connAckEmitter, clientData));
+            final Bootstrap bootstrap = clientData.getClientComponent()
+                    .connectionComponentBuilder()
+                    .connect(mqttConnect)
+                    .connAckEmitter(connAckEmitter)
+                    .build()
+                    .bootstrap();
 
             bootstrap.connect(clientData.getServerHost(), clientData.getServerPort()).addListener(future -> {
                 if (!future.isSuccess()) {
@@ -190,13 +191,7 @@ public class Mqtt5ClientImpl implements Mqtt5Client {
         return Completable.create(emitter -> {
             final MqttClientConnectionData clientConnectionData = clientData.getRawClientConnectionData();
             if (clientConnectionData != null) {
-                MqttDisconnectUtil.disconnect(clientConnectionData.getChannel(), mqttDisconnect).addListener(future -> {
-                    if (future.isSuccess()) {
-                        emitter.onComplete();
-                    } else {
-                        emitter.onError(future.cause());
-                    }
-                });
+                MqttDisconnectUtil.disconnect(clientConnectionData.getChannel(), mqttDisconnect, emitter);
             } else {
                 emitter.onError(new NotConnectedException());
             }

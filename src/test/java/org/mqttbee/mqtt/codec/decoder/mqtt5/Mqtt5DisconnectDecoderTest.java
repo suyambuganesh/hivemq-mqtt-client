@@ -78,10 +78,7 @@ class Mqtt5DisconnectDecoderTest extends AbstractMqtt5DecoderTest {
 
         final ByteBuf byteBuf = channel.alloc().buffer();
         byteBuf.writeBytes(encoded);
-        channel.writeInbound(byteBuf);
-        final MqttDisconnect disconnect = channel.readInbound();
-
-        assertNotNull(disconnect);
+        final MqttDisconnect disconnect = testOk(byteBuf);
 
         assertEquals(Mqtt5DisconnectReasonCode.NORMAL_DISCONNECTION, disconnect.getReasonCode());
         assertTrue(disconnect.getSessionExpiryInterval().isPresent());
@@ -108,10 +105,7 @@ class Mqtt5DisconnectDecoderTest extends AbstractMqtt5DecoderTest {
         //   remaining length
         byteBuf.writeByte(0);
 
-        channel.writeInbound(byteBuf);
-        final Mqtt5Disconnect disconnect = channel.readInbound();
-
-        assertNotNull(disconnect);
+        final Mqtt5Disconnect disconnect = testOk(byteBuf);
 
         assertEquals(Mqtt5DisconnectReasonCode.NORMAL_DISCONNECTION, disconnect.getReasonCode());
         assertFalse(disconnect.getSessionExpiryInterval().isPresent());
@@ -132,10 +126,7 @@ class Mqtt5DisconnectDecoderTest extends AbstractMqtt5DecoderTest {
         //   reason code (disconnect with will message)
         byteBuf.writeByte(0x04);
 
-        channel.writeInbound(byteBuf);
-        final Mqtt5Disconnect disconnect = channel.readInbound();
-
-        assertNotNull(disconnect);
+        final Mqtt5Disconnect disconnect = testOk(byteBuf);
 
         assertEquals(Mqtt5DisconnectReasonCode.DISCONNECT_WITH_WILL_MESSAGE, disconnect.getReasonCode());
         assertFalse(disconnect.getSessionExpiryInterval().isPresent());
@@ -550,10 +541,7 @@ class Mqtt5DisconnectDecoderTest extends AbstractMqtt5DecoderTest {
         byteBuf.writeBytes(new byte[]{0x26, 0, 4, 't', 'e', 's', 't', 0, 5, 'v', 'a', 'l', 'u', 'e'});
         byteBuf.writeBytes(new byte[]{0x26, 0, 4, 't', 'e', 's', 't', 0, 5, 'v', 'a', 'l', 'u', 'e'});
 
-        channel.writeInbound(byteBuf);
-        final MqttDisconnect disconnect = channel.readInbound();
-
-        assertNotNull(disconnect);
+        final MqttDisconnect disconnect = testOk(byteBuf);
 
         assertEquals(Mqtt5DisconnectReasonCode.NORMAL_DISCONNECTION, disconnect.getReasonCode());
         assertFalse(disconnect.getSessionExpiryInterval().isPresent());
@@ -862,6 +850,14 @@ class Mqtt5DisconnectDecoderTest extends AbstractMqtt5DecoderTest {
         channel.writeInbound(byteBuf);
 
         testDisconnect(Mqtt5DisconnectReasonCode.MALFORMED_PACKET, sendReasonString);
+    }
+
+    private MqttDisconnect testOk(final ByteBuf byteBuf) {
+        channel.pipeline().remove(disconnectHandler);
+        channel.writeInbound(byteBuf);
+        final MqttDisconnect disconnect = channel.readInbound();
+        assertNotNull(disconnect);
+        return disconnect;
     }
 
     private void testDisconnect(final Mqtt5DisconnectReasonCode reasonCode, final boolean sendReasonString) {
