@@ -20,7 +20,7 @@ package org.mqttbee.mqtt.handler.publish;
 import org.jetbrains.annotations.NotNull;
 import org.mqttbee.api.mqtt.MqttGlobalPublishFlowType;
 import org.mqttbee.api.mqtt.mqtt5.message.publish.Mqtt5Publish;
-import org.mqttbee.util.collections.ScNodeList;
+import org.mqttbee.util.collections.HandleList;
 import org.reactivestreams.Subscriber;
 
 /**
@@ -29,7 +29,7 @@ import org.reactivestreams.Subscriber;
 class MqttGlobalIncomingPublishFlow extends MqttIncomingPublishFlow<Subscriber<? super Mqtt5Publish>> {
 
     private final MqttGlobalPublishFlowType type;
-    private ScNodeList.Handle<MqttGlobalIncomingPublishFlow> handle;
+    private HandleList.Handle<MqttGlobalIncomingPublishFlow> handle;
 
     MqttGlobalIncomingPublishFlow(
             @NotNull final Subscriber<? super Mqtt5Publish> subscriber,
@@ -51,11 +51,11 @@ class MqttGlobalIncomingPublishFlow extends MqttIncomingPublishFlow<Subscriber<?
         return type;
     }
 
-    void setHandle(@NotNull final ScNodeList.Handle<MqttGlobalIncomingPublishFlow> handle) {
+    void setHandle(@NotNull final HandleList.Handle<MqttGlobalIncomingPublishFlow> handle) {
         this.handle = handle;
     }
 
-    ScNodeList.Handle<MqttGlobalIncomingPublishFlow> getHandle() {
+    HandleList.Handle<MqttGlobalIncomingPublishFlow> getHandle() {
         return handle;
     }
 
