@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.mqttbee.api.mqtt.MqttClientSslConfig;
 import org.mqttbee.api.mqtt.MqttWebSocketConfig;
 import org.mqttbee.api.mqtt.mqtt5.message.connect.connack.Mqtt5ConnAck;
+import org.mqttbee.mqtt.MqttClientConnectionState;
 import org.mqttbee.mqtt.MqttClientData;
 import org.mqttbee.mqtt.codec.encoder.MqttEncoder;
 import org.mqttbee.mqtt.datatypes.MqttVariableByteInteger;
@@ -133,6 +134,7 @@ public class MqttChannelInitializer extends ChannelInitializer<Channel> {
 
     @Override
     public void exceptionCaught(final ChannelHandlerContext ctx, final Throwable cause) {
+        clientData.getRawConnectionState().set(MqttClientConnectionState.DISCONNECTED);
         connAckEmitter.onError(cause);
         ctx.close();
     }
