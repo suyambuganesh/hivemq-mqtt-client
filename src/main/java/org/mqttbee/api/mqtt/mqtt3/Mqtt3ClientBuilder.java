@@ -38,11 +38,10 @@ public class Mqtt3ClientBuilder extends MqttClientBuilder {
     public Mqtt3ClientBuilder(
             @NotNull final MqttClientIdentifierImpl identifier, @NotNull final String serverHost, final int serverPort,
             @Nullable final MqttClientSslConfig sslConfig, @Nullable final MqttWebSocketConfig webSocketConfig,
-            @NotNull final MqttClientExecutorConfigImpl executorConfig) {
+            @Nullable final MqttClientExecutorConfigImpl executorConfig) {
 
         Preconditions.checkNotNull(identifier, "Identifier must not be null.");
         Preconditions.checkNotNull(serverHost, "Server host must not be null.");
-        Preconditions.checkNotNull(executorConfig, "Executor config must not be null.");
 
         this.identifier = identifier;
         this.serverHost = serverHost;
@@ -154,7 +153,7 @@ public class Mqtt3ClientBuilder extends MqttClientBuilder {
     @NotNull
     private MqttClientData buildClientData() {
         return new MqttClientData(MqttVersion.MQTT_3_1_1, identifier, serverHost, serverPort, sslConfig,
-                webSocketConfig, false, false, executorConfig, null);
+                webSocketConfig, false, false, MqttClientExecutorConfigImpl.orDefault(executorConfig), null);
     }
 
 }

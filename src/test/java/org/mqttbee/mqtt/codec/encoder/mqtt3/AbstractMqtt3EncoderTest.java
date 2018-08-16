@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+
 package org.mqttbee.mqtt.codec.encoder.mqtt3;
 
 import com.google.common.primitives.Bytes;
@@ -39,39 +40,27 @@ import static org.junit.Assert.assertArrayEquals;
  */
 public abstract class AbstractMqtt3EncoderTest extends AbstractMqttEncoderTest {
 
-    protected static final Charset UTF8 = Charset.forName("UTF-8");
+    static final Charset UTF8 = Charset.forName("UTF-8");
 
-    protected AbstractMqtt3EncoderTest(
-            @NotNull final MqttMessageEncoders messageEncoders,
-            final boolean connected
-    ) {
+    AbstractMqtt3EncoderTest(
+            @NotNull final MqttMessageEncoders messageEncoders, final boolean connected) {
         super(messageEncoders, connected, createClientData());
     }
 
     private static MqttClientData createClientData() {
-        return new MqttClientData(
-                MqttVersion.MQTT_3_1_1,
-                Objects.requireNonNull(MqttClientIdentifierImpl.from("test")),
-                "localhost",
-                1883,
-                null,
-                null,
-                false,
-                false,
-                MqttClientExecutorConfigImpl.DEFAULT,
-                null
-        );
+        return new MqttClientData(MqttVersion.MQTT_3_1_1, Objects.requireNonNull(MqttClientIdentifierImpl.from("test")),
+                "localhost", 1883, null, null, false, false, MqttClientExecutorConfigImpl.getDefault(), null);
     }
 
     protected void encode(@NotNull final byte[] expected, @NotNull final MqttMessage object) {
         assertArrayEquals(expected, bytesOf(object));
     }
 
-    protected byte[] bytesOf(@NotNull final MqttWireMessage message) throws MqttException {
+    byte[] bytesOf(@NotNull final MqttWireMessage message) throws MqttException {
         return Bytes.concat(message.getHeader(), message.getPayload());
     }
 
-    protected byte[] bytesOf(@NotNull final MqttMessage object) {
+    byte[] bytesOf(@NotNull final MqttMessage object) {
         channel.writeOutbound(object);
         final ByteBuf byteBuf = channel.readOutbound();
         final byte[] actual = new byte[byteBuf.readableBytes()];

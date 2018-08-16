@@ -18,14 +18,18 @@
 package org.mqttbee.api.mqtt;
 
 import com.google.common.base.Preconditions;
+import io.netty.channel.MultithreadEventLoopGroup;
 import io.reactivex.Scheduler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mqttbee.mqtt.MqttClientExecutorConfigImpl;
+import org.mqttbee.mqtt.ioc.MqttBeeComponent;
 import org.mqttbee.util.FluentBuilder;
 
 import java.util.concurrent.Executor;
 import java.util.function.Function;
+
+import static org.mqttbee.api.mqtt.MqttClientExecutorConfig.DEFAULT_APPLICATION_SCHEDULER;
 
 /**
  * @author Silvio Giebl
@@ -34,7 +38,7 @@ public class MqttClientExecutorConfigBuilder<P> extends FluentBuilder<MqttClient
 
     private Executor nettyExecutor;
     private int nettyThreads = MqttClientExecutorConfigImpl.DEFAULT_NETTY_THREADS;
-    private Scheduler applicationScheduler = MqttClientExecutorConfigImpl.DEFAULT_RX_JAVA_SCHEDULER;
+    private Scheduler applicationScheduler = DEFAULT_APPLICATION_SCHEDULER;
 
     public MqttClientExecutorConfigBuilder(
             @Nullable final Function<? super MqttClientExecutorConfig, P> parentConsumer) {
@@ -67,7 +71,9 @@ public class MqttClientExecutorConfigBuilder<P> extends FluentBuilder<MqttClient
     @NotNull
     @Override
     public MqttClientExecutorConfig build() {
-        return new MqttClientExecutorConfigImpl(nettyExecutor, nettyThreads, applicationScheduler);
+        final MultithreadEventLoopGroup eventLoopGroup =
+                MqttBeeComponent.INSTANCE.nettyEventLoopProvider().getEventLoopGroup(nettyExecutor, nettyThreads);
+        return new MqttClientExecutorConfigImpl(eventLoopGroup, applicationScheduler);
     }
 
 }

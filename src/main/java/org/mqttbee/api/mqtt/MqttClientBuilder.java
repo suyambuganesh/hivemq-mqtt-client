@@ -42,7 +42,7 @@ public class MqttClientBuilder {
     private boolean customServerPort = false;
     protected MqttClientSslConfig sslConfig = null;
     protected MqttWebSocketConfig webSocketConfig = null;
-    protected MqttClientExecutorConfigImpl executorConfig = MqttClientExecutorConfigImpl.DEFAULT;
+    protected MqttClientExecutorConfigImpl executorConfig = null;
 
     protected MqttClientBuilder() {
     }
