@@ -50,11 +50,26 @@ import org.mqttbee.mqtt.message.unsubscribe.mqtt3.Mqtt3UnsubscribeView;
 import org.mqttbee.mqtt.message.unsubscribe.unsuback.MqttUnsubAck;
 import org.mqttbee.mqtt.message.unsubscribe.unsuback.mqtt3.Mqtt3UnsubAckView;
 
+import java.util.function.Consumer;
+
 /**
  * @author David Katz
  * @author Silvio Giebl
  */
 public class Mqtt3MessageException extends Exception {
+
+    @SuppressWarnings("unchecked")
+    public static <M extends Mqtt3Message> void when(
+            @NotNull final Throwable throwable, @NotNull final Class<M> type, @NotNull final Consumer<M> consumer) {
+
+        if (throwable instanceof Mqtt3MessageException) {
+            final Mqtt3MessageException messageException = (Mqtt3MessageException) throwable;
+            final Mqtt3Message message = messageException.getMqttMessage();
+            if (type.isInstance(message)) {
+                consumer.accept((M) message);
+            }
+        }
+    }
 
     @NotNull
     private static Mqtt3Message viewOf(@NotNull final Mqtt5Message mqtt5Message) {
