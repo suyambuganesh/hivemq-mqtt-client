@@ -24,12 +24,14 @@ import org.mqttbee.mqtt.codec.encoder.MqttMessageEncoders;
 import org.mqttbee.mqtt.codec.encoder.MqttPingReqEncoder;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 /**
  * Collection of encoders for MQTT 3 messages a client can send.
  *
  * @author Silvio Giebl
  */
+@Singleton
 public class Mqtt3ClientMessageEncoders implements MqttMessageEncoders {
 
     private final MqttMessageEncoder[] encoders;
