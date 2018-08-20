@@ -41,7 +41,7 @@ import org.mqttbee.api.mqtt.mqtt5.message.unsubscribe.unsuback.Mqtt5UnsubAck;
 import org.mqttbee.mqtt.MqttClientConnectionData;
 import org.mqttbee.mqtt.MqttClientConnectionState;
 import org.mqttbee.mqtt.MqttClientData;
-import org.mqttbee.mqtt.handler.auth.MqttReAuthEvent;
+import org.mqttbee.mqtt.handler.auth.MqttReAuthCompletable;
 import org.mqttbee.mqtt.handler.disconnect.MqttDisconnectUtil;
 import org.mqttbee.mqtt.handler.publish.MqttGlobalIncomingPublishFlowable;
 import org.mqttbee.mqtt.handler.publish.MqttIncomingAckFlowable;
@@ -62,10 +62,10 @@ import org.mqttbee.util.MustNotBeImplementedUtil;
  */
 public class Mqtt5ClientImpl implements Mqtt5Client {
 
-    private static final Function<Mqtt5Publish, MqttPublish> PUBLISH_MAPPER =
+    private static final @NotNull Function<Mqtt5Publish, MqttPublish> PUBLISH_MAPPER =
             publish -> MustNotBeImplementedUtil.checkNotImplemented(publish, MqttPublish.class);
 
-    private final MqttClientData clientData;
+    private final @NotNull MqttClientData clientData;
 
     public Mqtt5ClientImpl(@NotNull final MqttClientData clientData) {
         this.clientData = clientData;
@@ -149,14 +149,8 @@ public class Mqtt5ClientImpl implements Mqtt5Client {
     @NotNull
     @Override
     public Completable reauth() {
-        return Completable.create(emitter -> {
-            final MqttClientConnectionData clientConnectionData = clientData.getRawClientConnectionData();
-            if (clientConnectionData != null) {
-                clientConnectionData.getChannel().pipeline().fireUserEventTriggered(new MqttReAuthEvent(emitter));
-            } else {
-                emitter.onError(new NotConnectedException());
-            }
-        }).observeOn(clientData.getExecutorConfig().getApplicationScheduler());
+        return new MqttReAuthCompletable(clientData).observeOn(
+                clientData.getExecutorConfig().getApplicationScheduler());
     }
 
     @NotNull
