@@ -26,7 +26,6 @@ import io.reactivex.functions.Function;
 import org.jetbrains.annotations.NotNull;
 import org.mqttbee.api.mqtt.MqttGlobalPublishFlowType;
 import org.mqttbee.api.mqtt.exceptions.AlreadyConnectedException;
-import org.mqttbee.api.mqtt.exceptions.NotConnectedException;
 import org.mqttbee.api.mqtt.mqtt5.Mqtt5Client;
 import org.mqttbee.api.mqtt.mqtt5.message.connect.Mqtt5Connect;
 import org.mqttbee.api.mqtt.mqtt5.message.connect.connack.Mqtt5ConnAck;
@@ -38,11 +37,10 @@ import org.mqttbee.api.mqtt.mqtt5.message.subscribe.Mqtt5SubscribeResult;
 import org.mqttbee.api.mqtt.mqtt5.message.subscribe.suback.Mqtt5SubAck;
 import org.mqttbee.api.mqtt.mqtt5.message.unsubscribe.Mqtt5Unsubscribe;
 import org.mqttbee.api.mqtt.mqtt5.message.unsubscribe.unsuback.Mqtt5UnsubAck;
-import org.mqttbee.mqtt.MqttClientConnectionData;
 import org.mqttbee.mqtt.MqttClientConnectionState;
 import org.mqttbee.mqtt.MqttClientData;
 import org.mqttbee.mqtt.handler.auth.MqttReAuthCompletable;
-import org.mqttbee.mqtt.handler.disconnect.MqttDisconnectUtil;
+import org.mqttbee.mqtt.handler.disconnect.MqttDisconnectCompletable;
 import org.mqttbee.mqtt.handler.publish.MqttGlobalIncomingPublishFlowable;
 import org.mqttbee.mqtt.handler.publish.MqttIncomingAckFlowable;
 import org.mqttbee.mqtt.handler.publish.MqttSubscriptionFlowable;
@@ -159,14 +157,8 @@ public class Mqtt5ClientImpl implements Mqtt5Client {
         final MqttDisconnect mqttDisconnect =
                 MustNotBeImplementedUtil.checkNotImplemented(disconnect, MqttDisconnect.class);
 
-        return Completable.create(emitter -> {
-            final MqttClientConnectionData clientConnectionData = clientData.getRawClientConnectionData();
-            if (clientConnectionData != null) {
-                MqttDisconnectUtil.disconnect(clientConnectionData.getChannel(), mqttDisconnect, emitter);
-            } else {
-                emitter.onError(new NotConnectedException());
-            }
-        }).observeOn(clientData.getExecutorConfig().getApplicationScheduler());
+        return new MqttDisconnectCompletable(clientData, mqttDisconnect).observeOn(
+                clientData.getExecutorConfig().getApplicationScheduler());
     }
 
     @NotNull
