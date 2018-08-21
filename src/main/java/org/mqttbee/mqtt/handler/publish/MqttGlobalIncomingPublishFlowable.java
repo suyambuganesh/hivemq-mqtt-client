@@ -33,29 +33,28 @@ import org.reactivestreams.Subscriber;
  */
 public class MqttGlobalIncomingPublishFlowable extends Flowable<Mqtt5Publish> {
 
-    private final MqttGlobalPublishFlowType type;
-    private final MqttClientData clientData;
+    private final @NotNull MqttGlobalPublishFlowType type;
+    private final @NotNull MqttClientData clientData;
 
     public MqttGlobalIncomingPublishFlowable(
-            @NotNull final MqttGlobalPublishFlowType type, @NotNull final MqttClientData clientData) {
+            final @NotNull MqttGlobalPublishFlowType type, final @NotNull MqttClientData clientData) {
 
         this.type = type;
         this.clientData = clientData;
     }
 
     @Override
-    protected void subscribeActual(final Subscriber<? super Mqtt5Publish> s) {
+    protected void subscribeActual(final @NotNull Subscriber<? super Mqtt5Publish> s) {
         if (clientData.getConnectionState() == MqttClientConnectionState.DISCONNECTED) {
             EmptySubscription.error(new NotConnectedException(), s);
         } else {
             final ClientComponent clientComponent = clientData.getClientComponent();
-            final MqttIncomingPublishService incomingPublishService = clientComponent.incomingPublishService();
-            final MqttIncomingPublishFlows incomingPublishFlows = incomingPublishService.getIncomingPublishFlows();
+            final MqttIncomingQosHandler incomingQosHandler = clientComponent.incomingQosHandler();
+            final MqttIncomingPublishFlows incomingPublishFlows = incomingQosHandler.getIncomingPublishFlows();
 
-            final MqttGlobalIncomingPublishFlow flow =
-                    new MqttGlobalIncomingPublishFlow(s, incomingPublishService, type);
+            final MqttGlobalIncomingPublishFlow flow = new MqttGlobalIncomingPublishFlow(s, incomingQosHandler, type);
             s.onSubscribe(flow);
-            incomingPublishService.getNettyEventLoop().execute(() -> incomingPublishFlows.subscribeGlobal(flow));
+            clientData.getEventLoop().execute(() -> incomingPublishFlows.subscribeGlobal(flow));
         }
     }
 

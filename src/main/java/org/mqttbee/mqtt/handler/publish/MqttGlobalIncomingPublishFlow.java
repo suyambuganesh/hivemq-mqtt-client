@@ -18,6 +18,7 @@
 package org.mqttbee.mqtt.handler.publish;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.mqttbee.api.mqtt.MqttGlobalPublishFlowType;
 import org.mqttbee.api.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import org.mqttbee.util.collections.HandleList;
@@ -28,26 +29,24 @@ import org.reactivestreams.Subscriber;
  */
 class MqttGlobalIncomingPublishFlow extends MqttIncomingPublishFlow<Subscriber<? super Mqtt5Publish>> {
 
-    private final MqttGlobalPublishFlowType type;
-    private HandleList.Handle<MqttGlobalIncomingPublishFlow> handle;
+    private final @NotNull MqttGlobalPublishFlowType type;
+    private @Nullable HandleList.Handle<MqttGlobalIncomingPublishFlow> handle;
 
     MqttGlobalIncomingPublishFlow(
             @NotNull final Subscriber<? super Mqtt5Publish> subscriber,
-            @NotNull final MqttIncomingPublishService incomingPublishService,
-            @NotNull final MqttGlobalPublishFlowType type) {
+            @NotNull final MqttIncomingQosHandler incomingQosHandler, @NotNull final MqttGlobalPublishFlowType type) {
 
-        super(incomingPublishService, subscriber);
+        super(subscriber, incomingQosHandler);
         this.type = type;
     }
 
     @Override
     void runCancel() {
-        incomingPublishService.getIncomingPublishFlows().cancelGlobal(this);
+        incomingQosHandler.getIncomingPublishFlows().cancelGlobal(this);
         super.runCancel();
     }
 
-    @NotNull
-    MqttGlobalPublishFlowType getType() {
+    @NotNull MqttGlobalPublishFlowType getType() {
         return type;
     }
 
@@ -55,7 +54,7 @@ class MqttGlobalIncomingPublishFlow extends MqttIncomingPublishFlow<Subscriber<?
         this.handle = handle;
     }
 
-    HandleList.Handle<MqttGlobalIncomingPublishFlow> getHandle() {
+    @Nullable HandleList.Handle<MqttGlobalIncomingPublishFlow> getHandle() {
         return handle;
     }
 
