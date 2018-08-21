@@ -15,7 +15,7 @@
  *
  */
 
-package org.mqttbee.mqtt.handler.publish;
+package org.mqttbee.mqtt.handler.publish.incoming;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,8 +33,8 @@ class MqttGlobalIncomingPublishFlow extends MqttIncomingPublishFlow<Subscriber<?
     private @Nullable HandleList.Handle<MqttGlobalIncomingPublishFlow> handle;
 
     MqttGlobalIncomingPublishFlow(
-            @NotNull final Subscriber<? super Mqtt5Publish> subscriber,
-            @NotNull final MqttIncomingQosHandler incomingQosHandler, @NotNull final MqttGlobalPublishFlowType type) {
+            final @NotNull Subscriber<? super Mqtt5Publish> subscriber,
+            final @NotNull MqttIncomingQosHandler incomingQosHandler, final @NotNull MqttGlobalPublishFlowType type) {
 
         super(subscriber, incomingQosHandler);
         this.type = type;
@@ -50,7 +50,7 @@ class MqttGlobalIncomingPublishFlow extends MqttIncomingPublishFlow<Subscriber<?
         return type;
     }
 
-    void setHandle(@NotNull final HandleList.Handle<MqttGlobalIncomingPublishFlow> handle) {
+    void setHandle(final @NotNull HandleList.Handle<MqttGlobalIncomingPublishFlow> handle) {
         this.handle = handle;
     }
 
