@@ -19,9 +19,9 @@ package org.mqttbee.mqtt.codec.encoder.mqtt5;
 
 import com.google.common.collect.ImmutableList;
 import io.netty.handler.codec.EncoderException;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.jetbrains.annotations.NotNull;
 import org.mqttbee.api.mqtt.datatypes.MqttQos;
 import org.mqttbee.api.mqtt.datatypes.MqttUTF8String;
 import org.mqttbee.api.mqtt.exceptions.MqttBinaryDataExceededException;
@@ -167,7 +167,7 @@ class Mqtt5ConnectEncoderTest extends AbstractMqtt5EncoderTest {
                 new MqttWillPublish(willTopic, willPayload, willQos, true, 10, Mqtt5PayloadFormatIndicator.UTF_8,
                         willContentType, willResponseTopic, willCorrelationData, userProperties, 5);
 
-        final MqttConnectRestrictions restrictions = new MqttConnectRestrictions(5, 10, 100);
+        final MqttConnectRestrictions restrictions = new MqttConnectRestrictions(5, 100, 10);
 
         final MqttConnect connect =
                 new MqttConnect(10, true, 10, true, false, restrictions, simpleAuth, enhancedAuthProvider, willPublish,
@@ -525,24 +525,24 @@ class Mqtt5ConnectEncoderTest extends AbstractMqtt5EncoderTest {
         encodeNok(connectWrapper, EncoderException.class, "variable byte integer size exceeded for property length");
     }
 
-    private void encode(final byte[] expected, final MqttStatefulConnect connectWrapper) {
+    private void encode(final @NotNull byte[] expected, final @NotNull MqttStatefulConnect connectWrapper) {
         encode(connectWrapper, expected);
     }
 
     private void encodeNok(
-            final MqttStatefulConnect connectWrapper, final Class<? extends Exception> expectedException,
-            final String reason) {
+            final @NotNull MqttStatefulConnect connectWrapper,
+            final @NotNull Class<? extends Exception> expectedException, final @NotNull String reason) {
 
         final Throwable exception = assertThrows(expectedException, () -> channel.writeOutbound(connectWrapper));
         assertTrue(exception.getMessage().contains(reason), () -> "found: " + exception.getMessage());
     }
 
+    @SuppressWarnings("NullabilityAnnotations")
     private class MaximumPacketBuilder {
 
         private ImmutableList.Builder<MqttUserPropertyImpl> userPropertiesBuilder;
-        final MqttUserPropertyImpl userProperty =
-                new MqttUserPropertyImpl(requireNonNull(MqttUTF8StringImpl.from("user")),
-                        requireNonNull(MqttUTF8StringImpl.from("property")));
+        final @NotNull MqttUserPropertyImpl userProperty =
+                new MqttUserPropertyImpl(requireNonNull(MqttUTF8StringImpl.from("user")), requireNonNull(MqttUTF8StringImpl.from("property")));
         char[] clientIdBytes;
         final int maxPropertyLength = MqttVariableByteInteger.MAXIMUM_PACKET_SIZE_LIMIT - 1  // type, reserved
                 - 4  // remaining length
@@ -558,7 +558,7 @@ class Mqtt5ConnectEncoderTest extends AbstractMqtt5EncoderTest {
                 + 2  // value length
                 + 8; // bytes to encode "property"
 
-        MaximumPacketBuilder build() {
+        @NotNull MaximumPacketBuilder build() {
             final int ClientIdLength = maxPropertyLength % userPropertyBytes;
 
             clientIdBytes = new char[ClientIdLength];
@@ -572,27 +572,27 @@ class Mqtt5ConnectEncoderTest extends AbstractMqtt5EncoderTest {
             return this;
         }
 
-        String getClientId() {
+        @NotNull String getClientId() {
             return getClientId("");
         }
 
-        String getClientId(final String extraChars) {
+        @NotNull String getClientId(final @NotNull String extraChars) {
             return new String(clientIdBytes) + extraChars;
         }
 
-        MqttUserPropertiesImpl getMaxPossibleUserProperties() {
+        @NotNull MqttUserPropertiesImpl getMaxPossibleUserProperties() {
             //return ImmutableList.of();
             return getMaxPossibleUserProperties(0);
         }
 
-        MqttUserPropertiesImpl getMaxPossibleUserProperties(final int withExtraUserProperties) {
+        @NotNull MqttUserPropertiesImpl getMaxPossibleUserProperties(final int withExtraUserProperties) {
             for (int i = 0; i < withExtraUserProperties; i++) {
                 userPropertiesBuilder.add(userProperty);
             }
             return MqttUserPropertiesImpl.of(userPropertiesBuilder.build());
         }
 
-        MqttUserPropertiesImpl getUserProperties(final int totalCount) {
+        @NotNull MqttUserPropertiesImpl getUserProperties(final int totalCount) {
             final ImmutableList.Builder<MqttUserPropertyImpl> builder = new ImmutableList.Builder<>();
             for (int i = 0; i < totalCount; i++) {
                 builder.add(userProperty);
@@ -601,10 +601,9 @@ class Mqtt5ConnectEncoderTest extends AbstractMqtt5EncoderTest {
         }
     }
 
-
     private static class TestEnhancedAuthProvider implements Mqtt5EnhancedAuthProvider {
 
-        private final MqttUTF8String method;
+        private final @NotNull MqttUTF8String method;
 
         TestEnhancedAuthProvider(@NotNull final MqttUTF8String method) {
             this.method = method;

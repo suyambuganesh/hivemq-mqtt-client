@@ -32,17 +32,16 @@ import java.util.function.Function;
 public class Mqtt5ConnectRestrictionsBuilder<P> extends FluentBuilder<Mqtt5ConnectRestrictions, P> {
 
     private int receiveMaximum = Mqtt5ConnectRestrictions.DEFAULT_RECEIVE_MAXIMUM;
-    private int topicAliasMaximum = Mqtt5ConnectRestrictions.DEFAULT_TOPIC_ALIAS_MAXIMUM;
     private int maximumPacketSize = Mqtt5ConnectRestrictions.DEFAULT_MAXIMUM_PACKET_SIZE_NO_LIMIT;
+    private int topicAliasMaximum = Mqtt5ConnectRestrictions.DEFAULT_TOPIC_ALIAS_MAXIMUM;
 
     public Mqtt5ConnectRestrictionsBuilder(
-            @Nullable final Function<? super Mqtt5ConnectRestrictions, P> parentConsumer) {
+            final @Nullable Function<? super Mqtt5ConnectRestrictions, P> parentConsumer) {
 
         super(parentConsumer);
     }
 
-    @NotNull
-    public Mqtt5ConnectRestrictionsBuilder<P> receiveMaximum(final int receiveMaximum) {
+    public @NotNull Mqtt5ConnectRestrictionsBuilder<P> receiveMaximum(final int receiveMaximum) {
         Preconditions.checkArgument(UnsignedDataTypes.isUnsignedShort(receiveMaximum),
                 "The value of receive maximum must not exceed the value range of unsigned short. Found: %s which is bigger than %s (max unsigned short).",
                 receiveMaximum, UnsignedDataTypes.UNSIGNED_SHORT_MAX_VALUE);
@@ -51,8 +50,15 @@ public class Mqtt5ConnectRestrictionsBuilder<P> extends FluentBuilder<Mqtt5Conne
         return this;
     }
 
-    @NotNull
-    public Mqtt5ConnectRestrictionsBuilder<P> topicAliasMaximum(final int topicAliasMaximum) {
+    public @NotNull Mqtt5ConnectRestrictionsBuilder<P> maximumPacketSize(final int maximumPacketSize) {
+        Preconditions.checkArgument(UnsignedDataTypes.isUnsignedInt(maximumPacketSize),
+                "The value of maximum packet size must not exceed the value range of unsigned int. Found: %s which is bigger than %s (max unsigned int).",
+                maximumPacketSize, UnsignedDataTypes.UNSIGNED_INT_MAX_VALUE);
+        this.maximumPacketSize = maximumPacketSize;
+        return this;
+    }
+
+    public @NotNull Mqtt5ConnectRestrictionsBuilder<P> topicAliasMaximum(final int topicAliasMaximum) {
         Preconditions.checkArgument(UnsignedDataTypes.isUnsignedShort(topicAliasMaximum),
                 "The value of topic alias maximum must not exceed the value range of unsigned short. Found: %s which is bigger than %s (max unsigned short).",
                 topicAliasMaximum, UnsignedDataTypes.UNSIGNED_SHORT_MAX_VALUE);
@@ -61,19 +67,9 @@ public class Mqtt5ConnectRestrictionsBuilder<P> extends FluentBuilder<Mqtt5Conne
         return this;
     }
 
-    @NotNull
-    public Mqtt5ConnectRestrictionsBuilder<P> maximumPacketSize(final int maximumPacketSize) {
-        Preconditions.checkArgument(UnsignedDataTypes.isUnsignedInt(maximumPacketSize),
-                "The value of maximum packet size must not exceed the value range of unsigned int. Found: %s which is bigger than %s (max unsigned int).",
-                maximumPacketSize, UnsignedDataTypes.UNSIGNED_INT_MAX_VALUE);
-        this.maximumPacketSize = maximumPacketSize;
-        return this;
-    }
-
-    @NotNull
     @Override
-    public Mqtt5ConnectRestrictions build() {
-        return new MqttConnectRestrictions(receiveMaximum, topicAliasMaximum, maximumPacketSize);
+    public @NotNull Mqtt5ConnectRestrictions build() {
+        return new MqttConnectRestrictions(receiveMaximum, maximumPacketSize, topicAliasMaximum);
     }
 
 }
