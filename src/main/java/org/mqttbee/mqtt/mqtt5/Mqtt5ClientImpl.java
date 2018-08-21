@@ -18,14 +18,12 @@
 package org.mqttbee.mqtt.mqtt5;
 
 import com.google.common.base.Preconditions;
-import io.netty.bootstrap.Bootstrap;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.reactivex.functions.Function;
 import org.jetbrains.annotations.NotNull;
 import org.mqttbee.api.mqtt.MqttGlobalPublishFlowType;
-import org.mqttbee.api.mqtt.exceptions.AlreadyConnectedException;
 import org.mqttbee.api.mqtt.mqtt5.Mqtt5Client;
 import org.mqttbee.api.mqtt.mqtt5.message.connect.Mqtt5Connect;
 import org.mqttbee.api.mqtt.mqtt5.message.connect.connack.Mqtt5ConnAck;
@@ -37,9 +35,9 @@ import org.mqttbee.api.mqtt.mqtt5.message.subscribe.Mqtt5SubscribeResult;
 import org.mqttbee.api.mqtt.mqtt5.message.subscribe.suback.Mqtt5SubAck;
 import org.mqttbee.api.mqtt.mqtt5.message.unsubscribe.Mqtt5Unsubscribe;
 import org.mqttbee.api.mqtt.mqtt5.message.unsubscribe.unsuback.Mqtt5UnsubAck;
-import org.mqttbee.mqtt.MqttClientConnectionState;
 import org.mqttbee.mqtt.MqttClientData;
 import org.mqttbee.mqtt.handler.auth.MqttReAuthCompletable;
+import org.mqttbee.mqtt.handler.connect.MqttConnAckSingle;
 import org.mqttbee.mqtt.handler.disconnect.MqttDisconnectCompletable;
 import org.mqttbee.mqtt.handler.publish.MqttGlobalIncomingPublishFlowable;
 import org.mqttbee.mqtt.handler.publish.MqttIncomingAckFlowable;
@@ -65,40 +63,20 @@ public class Mqtt5ClientImpl implements Mqtt5Client {
 
     private final @NotNull MqttClientData clientData;
 
-    public Mqtt5ClientImpl(@NotNull final MqttClientData clientData) {
+    public Mqtt5ClientImpl(final @NotNull MqttClientData clientData) {
         this.clientData = clientData;
     }
 
-    @NotNull
     @Override
-    public Single<Mqtt5ConnAck> connect(@NotNull final Mqtt5Connect connect) {
+    public @NotNull Single<Mqtt5ConnAck> connect(final @NotNull Mqtt5Connect connect) {
         final MqttConnect mqttConnect = MustNotBeImplementedUtil.checkNotImplemented(connect, MqttConnect.class);
 
-        return Single.<Mqtt5ConnAck>create(connAckEmitter -> {
-            if (!clientData.getRawConnectionState()
-                    .compareAndSet(MqttClientConnectionState.DISCONNECTED, MqttClientConnectionState.CONNECTING)) {
-                connAckEmitter.onError(new AlreadyConnectedException());
-                return;
-            }
-
-            final Bootstrap bootstrap = clientData.getClientComponent()
-                    .connectionComponentBuilder()
-                    .connect(mqttConnect)
-                    .connAckEmitter(connAckEmitter)
-                    .build()
-                    .bootstrap();
-
-            bootstrap.connect(clientData.getServerHost(), clientData.getServerPort()).addListener(future -> {
-                if (!future.isSuccess()) {
-                    connAckEmitter.onError(future.cause());
-                }
-            });
-        }).observeOn(clientData.getExecutorConfig().getApplicationScheduler());
+        return new MqttConnAckSingle(clientData, mqttConnect).observeOn(
+                clientData.getExecutorConfig().getApplicationScheduler());
     }
 
-    @NotNull
     @Override
-    public Single<Mqtt5SubAck> subscribe(@NotNull final Mqtt5Subscribe subscribe) {
+    public @NotNull Single<Mqtt5SubAck> subscribe(final @NotNull Mqtt5Subscribe subscribe) {
         final MqttSubscribe mqttSubscribe =
                 MustNotBeImplementedUtil.checkNotImplemented(subscribe, MqttSubscribe.class);
 
@@ -106,9 +84,10 @@ public class Mqtt5ClientImpl implements Mqtt5Client {
                 clientData.getExecutorConfig().getApplicationScheduler());
     }
 
-    @NotNull
     @Override
-    public FlowableWithSingle<Mqtt5SubAck, Mqtt5Publish> subscribeWithStream(@NotNull final Mqtt5Subscribe subscribe) {
+    public @NotNull FlowableWithSingle<Mqtt5SubAck, Mqtt5Publish> subscribeWithStream(
+            @NotNull final Mqtt5Subscribe subscribe) {
+
         final MqttSubscribe mqttSubscribe =
                 MustNotBeImplementedUtil.checkNotImplemented(subscribe, MqttSubscribe.class);
 
@@ -118,18 +97,16 @@ public class Mqtt5ClientImpl implements Mqtt5Client {
         return new FlowableWithSingleSplit<>(subscriptionFlowable, Mqtt5SubAck.class, Mqtt5Publish.class);
     }
 
-    @NotNull
     @Override
-    public Flowable<Mqtt5Publish> publishes(@NotNull final MqttGlobalPublishFlowType type) {
+    public @NotNull Flowable<Mqtt5Publish> publishes(final @NotNull MqttGlobalPublishFlowType type) {
         Preconditions.checkNotNull(type, "Global publish flow type must not be null.");
 
         return new MqttGlobalIncomingPublishFlowable(type, clientData).observeOn(
                 clientData.getExecutorConfig().getApplicationScheduler());
     }
 
-    @NotNull
     @Override
-    public Single<Mqtt5UnsubAck> unsubscribe(@NotNull final Mqtt5Unsubscribe unsubscribe) {
+    public @NotNull Single<Mqtt5UnsubAck> unsubscribe(final @NotNull Mqtt5Unsubscribe unsubscribe) {
         final MqttUnsubscribe mqttUnsubscribe =
                 MustNotBeImplementedUtil.checkNotImplemented(unsubscribe, MqttUnsubscribe.class);
 
@@ -137,23 +114,20 @@ public class Mqtt5ClientImpl implements Mqtt5Client {
                 clientData.getExecutorConfig().getApplicationScheduler());
     }
 
-    @NotNull
     @Override
-    public Flowable<Mqtt5PublishResult> publish(@NotNull final Flowable<Mqtt5Publish> publishFlowable) {
+    public @NotNull Flowable<Mqtt5PublishResult> publish(final @NotNull Flowable<Mqtt5Publish> publishFlowable) {
         return new MqttIncomingAckFlowable(publishFlowable.map(PUBLISH_MAPPER), clientData).observeOn(
                 clientData.getExecutorConfig().getApplicationScheduler());
     }
 
-    @NotNull
     @Override
-    public Completable reauth() {
+    public @NotNull Completable reauth() {
         return new MqttReAuthCompletable(clientData).observeOn(
                 clientData.getExecutorConfig().getApplicationScheduler());
     }
 
-    @NotNull
     @Override
-    public Completable disconnect(@NotNull final Mqtt5Disconnect disconnect) {
+    public @NotNull Completable disconnect(final @NotNull Mqtt5Disconnect disconnect) {
         final MqttDisconnect mqttDisconnect =
                 MustNotBeImplementedUtil.checkNotImplemented(disconnect, MqttDisconnect.class);
 
@@ -161,9 +135,8 @@ public class Mqtt5ClientImpl implements Mqtt5Client {
                 clientData.getExecutorConfig().getApplicationScheduler());
     }
 
-    @NotNull
     @Override
-    public MqttClientData getClientData() {
+    public @NotNull MqttClientData getClientData() {
         return clientData;
     }
 
