@@ -19,11 +19,11 @@ package org.mqttbee.mqtt.codec.decoder.mqtt5;
 
 import com.google.common.collect.ImmutableList;
 import io.netty.buffer.ByteBuf;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.mqttbee.api.mqtt.mqtt5.message.Mqtt5MessageType;
 import org.mqttbee.api.mqtt.mqtt5.message.disconnect.Mqtt5Disconnect;
 import org.mqttbee.api.mqtt.mqtt5.message.disconnect.Mqtt5DisconnectReasonCode;
@@ -225,7 +225,7 @@ class Mqtt5PubRecDecoderTest extends AbstractMqtt5DecoderTest {
                 0x26, 0, 4, 't', 'e', 's', 't', 0, 5, 'v', 'a', 'l', 'u', 'e', //
                 0x26, 0, 4, 't', 'e', 's', 't', 0, 5, 'v', 'a', 'l', 'u', 'e'
         };
-        createClientConnectionData(encoded.length - 1);
+        setMaximumPacketSize(encoded.length - 1);
         decodeNok(encoded, Mqtt5DisconnectReasonCode.PACKET_TOO_LARGE);
     }
 
@@ -404,14 +404,13 @@ class Mqtt5PubRecDecoderTest extends AbstractMqtt5DecoderTest {
         decodeNok(encoded, Mqtt5DisconnectReasonCode.MALFORMED_PACKET);
     }
 
-    @NotNull
-    private MqttPubRec decodeOk(final byte[] encoded) {
+    private @NotNull MqttPubRec decodeOk(final @NotNull byte[] encoded) {
         final MqttPubRec pubRec = decode(encoded);
         assertNotNull(pubRec);
         return pubRec;
     }
 
-    private void decodeNok(final byte[] encoded, final Mqtt5DisconnectReasonCode reasonCode) {
+    private void decodeNok(final @NotNull byte[] encoded, final @NotNull Mqtt5DisconnectReasonCode reasonCode) {
         final MqttPubRec pubRec = decode(encoded);
         assertNull(pubRec);
 
@@ -422,8 +421,7 @@ class Mqtt5PubRecDecoderTest extends AbstractMqtt5DecoderTest {
         createChannel();
     }
 
-    @Nullable
-    private MqttPubRec decode(final byte[] encoded) {
+    private @Nullable MqttPubRec decode(final @NotNull byte[] encoded) {
         final ByteBuf byteBuf = channel.alloc().buffer();
         byteBuf.writeBytes(encoded);
         channel.writeInbound(byteBuf);

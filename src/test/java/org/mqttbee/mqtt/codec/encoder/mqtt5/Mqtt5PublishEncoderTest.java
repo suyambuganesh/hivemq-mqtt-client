@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.ImmutableIntArray;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.mqttbee.api.mqtt.datatypes.MqttQos;
 import org.mqttbee.api.mqtt.exceptions.MqttMaximumPacketSizeExceededException;
@@ -337,7 +338,6 @@ class Mqtt5PublishEncoderTest extends AbstractMqtt5EncoderWithUserPropertiesTest
                         MqttTopicImpl.from("responseTopic"), null, TopicAliasUsage.NO, NO_USER_PROPERTIES);
         encode(expected, publish, 15, false, DEFAULT_NO_TOPIC_ALIAS, true, ImmutableIntArray.of());
     }
-
 
     @Test
     void encode_correlationData() {
@@ -723,22 +723,23 @@ class Mqtt5PublishEncoderTest extends AbstractMqtt5EncoderWithUserPropertiesTest
     }
 
     private void encode(
-            final byte[] expected, final MqttPublish publish, final int packetIdentifier, final boolean isDup,
-            final ImmutableIntArray subscriptionIdentifiers) {
+            final @NotNull byte[] expected, final MqttPublish publish, final int packetIdentifier, final boolean isDup,
+            final @NotNull ImmutableIntArray subscriptionIdentifiers) {
         final MqttStatefulPublish publishInternal =
                 publish.createStateful(packetIdentifier, isDup, DEFAULT_NO_TOPIC_ALIAS, false, subscriptionIdentifiers);
         encodeInternal(expected, publishInternal);
     }
 
     private void encode(
-            final byte[] expected, final MqttPublish publish, final int packetIdentifier, final boolean isDup,
-            final int topicAlias, final boolean isNewTopicAlias, final ImmutableIntArray subscriptionIdentifiers) {
+            final @NotNull byte[] expected, final MqttPublish publish, final int packetIdentifier, final boolean isDup,
+            final int topicAlias, final boolean isNewTopicAlias,
+            final @NotNull ImmutableIntArray subscriptionIdentifiers) {
         final MqttStatefulPublish publishInternal =
                 publish.createStateful(packetIdentifier, isDup, topicAlias, isNewTopicAlias, subscriptionIdentifiers);
         encodeInternal(expected, publishInternal);
     }
 
-    private void encodeInternal(final byte[] expected, final MqttStatefulPublish publishInternal) {
+    private void encodeInternal(final @NotNull byte[] expected, final @NotNull MqttStatefulPublish publishInternal) {
         encode(publishInternal, expected);
     }
 

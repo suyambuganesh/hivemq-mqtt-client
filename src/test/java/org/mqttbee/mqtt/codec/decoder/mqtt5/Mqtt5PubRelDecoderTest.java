@@ -19,11 +19,11 @@ package org.mqttbee.mqtt.codec.decoder.mqtt5;
 
 import com.google.common.collect.ImmutableList;
 import io.netty.buffer.ByteBuf;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.mqttbee.api.mqtt.mqtt5.message.Mqtt5MessageType;
 import org.mqttbee.api.mqtt.mqtt5.message.disconnect.Mqtt5Disconnect;
 import org.mqttbee.api.mqtt.mqtt5.message.disconnect.Mqtt5DisconnectReasonCode;
@@ -105,7 +105,7 @@ class Mqtt5PubRelDecoderTest extends AbstractMqtt5DecoderTest {
 
     @ParameterizedTest
     @EnumSource(value = Mqtt5PubRelReasonCode.class, mode = EnumSource.Mode.EXCLUDE, names = {"SUCCESS"})
-    void decode_allReasonCodes(final Mqtt5PubRelReasonCode reasonCode) {
+    void decode_allReasonCodes(final @NotNull Mqtt5PubRelReasonCode reasonCode) {
         final byte[] encoded = {
                 // fixed header
                 //   type, flags
@@ -170,7 +170,6 @@ class Mqtt5PubRelDecoderTest extends AbstractMqtt5DecoderTest {
         decodeNok(encoded, MALFORMED_PACKET);
     }
 
-
     @Test
     void decode_packetLengthLargerThanMaxPacketSize_returnsNull() {
         final byte[] encoded = {
@@ -190,7 +189,7 @@ class Mqtt5PubRelDecoderTest extends AbstractMqtt5DecoderTest {
                 0x26, 0, 4, 't', 'e', 's', 't', 0, 5, 'v', 'a', 'l', 'u', 'e', //
                 0x26, 0, 4, 't', 'e', 's', 't', 0, 5, 'v', 'a', 'l', 'u', 'e'
         };
-        createClientConnectionData(encoded.length - 1);
+        setMaximumPacketSize(encoded.length - 1);
         decodeNok(encoded, Mqtt5DisconnectReasonCode.PACKET_TOO_LARGE);
     }
 
@@ -345,14 +344,13 @@ class Mqtt5PubRelDecoderTest extends AbstractMqtt5DecoderTest {
         decodeNok(encoded, MALFORMED_PACKET);
     }
 
-    @NotNull
-    private MqttPubRel decodeOk(final byte[] encoded) {
+    private @NotNull MqttPubRel decodeOk(final @NotNull byte[] encoded) {
         final MqttPubRel pubRel = decode(encoded);
         assertNotNull(pubRel);
         return pubRel;
     }
 
-    private void decodeNok(final byte[] encoded, final Mqtt5DisconnectReasonCode reasonCode) {
+    private void decodeNok(final @NotNull byte[] encoded, final @NotNull Mqtt5DisconnectReasonCode reasonCode) {
         final MqttPubRel pubRel = decode(encoded);
         assertNull(pubRel);
 
@@ -363,8 +361,7 @@ class Mqtt5PubRelDecoderTest extends AbstractMqtt5DecoderTest {
         createChannel();
     }
 
-    @Nullable
-    private MqttPubRel decode(final byte[] encoded) {
+    private @Nullable MqttPubRel decode(final @NotNull byte[] encoded) {
         final ByteBuf byteBuf = channel.alloc().buffer();
         byteBuf.writeBytes(encoded);
         channel.writeInbound(byteBuf);

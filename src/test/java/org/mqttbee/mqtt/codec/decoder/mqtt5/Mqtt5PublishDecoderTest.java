@@ -20,18 +20,18 @@ package org.mqttbee.mqtt.codec.decoder.mqtt5;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.ImmutableIntArray;
 import io.netty.buffer.ByteBuf;
-import org.junit.jupiter.api.Test;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.Test;
 import org.mqttbee.api.mqtt.datatypes.MqttQos;
 import org.mqttbee.api.mqtt.mqtt5.message.Mqtt5MessageType;
 import org.mqttbee.api.mqtt.mqtt5.message.disconnect.Mqtt5Disconnect;
 import org.mqttbee.api.mqtt.mqtt5.message.disconnect.Mqtt5DisconnectReasonCode;
 import org.mqttbee.api.mqtt.mqtt5.message.publish.Mqtt5PayloadFormatIndicator;
 import org.mqttbee.api.mqtt.mqtt5.message.publish.TopicAliasUsage;
+import org.mqttbee.mqtt.codec.decoder.MqttDecoderFlag;
 import org.mqttbee.mqtt.datatypes.MqttUserPropertyImpl;
 import org.mqttbee.mqtt.message.publish.MqttPublish;
 import org.mqttbee.mqtt.message.publish.MqttStatefulPublish;
-import org.mqttbee.mqtt.netty.ChannelAttributes;
 import org.mqttbee.util.ByteBufferUtil;
 
 import java.nio.ByteBuffer;
@@ -365,10 +365,9 @@ class Mqtt5PublishDecoderTest extends AbstractMqtt5DecoderTest {
         decodeNok(encoded, PROTOCOL_ERROR);
     }
 
-
     @Test
     void decode_payloadFormatIndicatorUtf8() {
-        ChannelAttributes.validatePayloadFormat(true, channel);
+        setFlag(MqttDecoderFlag.VALIDATE_PAYLOAD_FORMAT);
         final byte[] encoded = {
                 // fixed header
                 //   type, flags
@@ -395,7 +394,7 @@ class Mqtt5PublishDecoderTest extends AbstractMqtt5DecoderTest {
 
     @Test
     void decode_invalidPayloadFormatIndicator_returnsNull() {
-        ChannelAttributes.validatePayloadFormat(true, channel);
+        setFlag(MqttDecoderFlag.VALIDATE_PAYLOAD_FORMAT);
         final byte[] encoded = {
                 // fixed header
                 //   type, flags
@@ -438,7 +437,7 @@ class Mqtt5PublishDecoderTest extends AbstractMqtt5DecoderTest {
 
     @Test
     void decode_PayloadUtf8NotWellFormed_returnsNull() {
-        ChannelAttributes.validatePayloadFormat(true, channel);
+        setFlag(MqttDecoderFlag.VALIDATE_PAYLOAD_FORMAT);
         final byte[] encoded = {
                 // fixed header
                 //   type, flags
@@ -455,7 +454,6 @@ class Mqtt5PublishDecoderTest extends AbstractMqtt5DecoderTest {
                 // payload
                 (byte) 0xFF
         };
-
         decodeNok(encoded, PAYLOAD_FORMAT_INVALID);
     }
 
@@ -1017,7 +1015,6 @@ class Mqtt5PublishDecoderTest extends AbstractMqtt5DecoderTest {
         decodeNok(encoded, TOPIC_ALIAS_INVALID);
     }
 
-
     @Test
     void decode_topicAliasTooLarge_returnsNull() {
         final byte[] encoded = {
@@ -1221,12 +1218,12 @@ class Mqtt5PublishDecoderTest extends AbstractMqtt5DecoderTest {
     }
 
     @NotNull
-    private MqttPublish decode(final byte[] encoded) {
+    private MqttPublish decode(final @NotNull byte[] encoded) {
         return decodeInternal(encoded).getStatelessMessage();
     }
 
     @NotNull
-    private MqttStatefulPublish decodeInternal(final byte[] encoded) {
+    private MqttStatefulPublish decodeInternal(final @NotNull byte[] encoded) {
         final ByteBuf byteBuf = channel.alloc().buffer();
         byteBuf.writeBytes(encoded);
         channel.writeInbound(byteBuf);
@@ -1237,7 +1234,7 @@ class Mqtt5PublishDecoderTest extends AbstractMqtt5DecoderTest {
         return publishInternal;
     }
 
-    private void decodeNok(final byte[] encoded, final Mqtt5DisconnectReasonCode reasonCode) {
+    private void decodeNok(final @NotNull byte[] encoded, final @NotNull Mqtt5DisconnectReasonCode reasonCode) {
         final ByteBuf byteBuf = channel.alloc().buffer();
         byteBuf.writeBytes(encoded);
         channel.writeInbound(byteBuf);
