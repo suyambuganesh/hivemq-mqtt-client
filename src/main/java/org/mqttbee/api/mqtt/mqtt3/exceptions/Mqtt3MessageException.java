@@ -18,6 +18,7 @@
 package org.mqttbee.api.mqtt.mqtt3.exceptions;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.mqttbee.api.mqtt.mqtt3.message.Mqtt3Message;
 import org.mqttbee.api.mqtt.mqtt5.exceptions.Mqtt5MessageException;
 import org.mqttbee.api.mqtt.mqtt5.message.Mqtt5Message;
@@ -50,6 +51,7 @@ import org.mqttbee.mqtt.message.unsubscribe.mqtt3.Mqtt3UnsubscribeView;
 import org.mqttbee.mqtt.message.unsubscribe.unsuback.MqttUnsubAck;
 import org.mqttbee.mqtt.message.unsubscribe.unsuback.mqtt3.Mqtt3UnsubAckView;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -60,7 +62,10 @@ public class Mqtt3MessageException extends Exception {
 
     @SuppressWarnings("unchecked")
     public static <M extends Mqtt3Message> void when(
-            @NotNull final Throwable throwable, @NotNull final Class<M> type, @NotNull final Consumer<M> consumer) {
+            final @Nullable Throwable throwable, final @NotNull Class<M> type, final @NotNull Consumer<M> consumer) {
+
+        Objects.requireNonNull(type, "Type must not be null");
+        Objects.requireNonNull(consumer, "Consumer must not be null");
 
         if (throwable instanceof Mqtt3MessageException) {
             final Mqtt3MessageException messageException = (Mqtt3MessageException) throwable;
@@ -71,8 +76,7 @@ public class Mqtt3MessageException extends Exception {
         }
     }
 
-    @NotNull
-    private static Mqtt3Message viewOf(@NotNull final Mqtt5Message mqtt5Message) {
+    private static @NotNull Mqtt3Message viewOf(final @NotNull Mqtt5Message mqtt5Message) {
         if (mqtt5Message instanceof MqttConnect) {
             return Mqtt3ConnectView.of((MqttConnect) mqtt5Message);
         } else if (mqtt5Message instanceof MqttConnAck) {
@@ -105,15 +109,14 @@ public class Mqtt3MessageException extends Exception {
         throw new IllegalStateException();
     }
 
-    private final Mqtt3Message mqtt3Message;
+    private final @NotNull Mqtt3Message mqtt3Message;
 
-    public Mqtt3MessageException(@NotNull final Mqtt5MessageException mqtt5MessageException) {
+    public Mqtt3MessageException(final @NotNull Mqtt5MessageException mqtt5MessageException) {
         super(mqtt5MessageException.getMessage(), mqtt5MessageException.getCause());
         this.mqtt3Message = viewOf(mqtt5MessageException.getMqttMessage());
     }
 
-    @NotNull
-    public Mqtt3Message getMqttMessage() {
+    public @NotNull Mqtt3Message getMqttMessage() {
         return mqtt3Message;
     }
 
