@@ -18,58 +18,62 @@
 package org.mqttbee.api.mqtt.mqtt5.advanced;
 
 import org.jetbrains.annotations.NotNull;
-import org.mqttbee.api.mqtt.mqtt5.advanced.qos1.Mqtt5IncomingQos1ControlProvider;
-import org.mqttbee.api.mqtt.mqtt5.advanced.qos1.Mqtt5OutgoingQos1ControlProvider;
-import org.mqttbee.api.mqtt.mqtt5.advanced.qos2.Mqtt5IncomingQos2ControlProvider;
-import org.mqttbee.api.mqtt.mqtt5.advanced.qos2.Mqtt5OutgoingQos2ControlProvider;
+import org.jetbrains.annotations.Nullable;
+import org.mqttbee.api.mqtt.mqtt5.advanced.qos1.Mqtt5IncomingQos1Interceptor;
+import org.mqttbee.api.mqtt.mqtt5.advanced.qos1.Mqtt5OutgoingQos1Interceptor;
+import org.mqttbee.api.mqtt.mqtt5.advanced.qos2.Mqtt5IncomingQos2Interceptor;
+import org.mqttbee.api.mqtt.mqtt5.advanced.qos2.Mqtt5OutgoingQos2Interceptor;
 import org.mqttbee.mqtt.advanced.MqttAdvancedClientData;
+import org.mqttbee.util.FluentBuilder;
+
+import java.util.function.Function;
 
 /**
  * @author Silvio Giebl
  */
-public class Mqtt5AdvancedClientDataBuilder {
+public class Mqtt5AdvancedClientDataBuilder<P> extends FluentBuilder<Mqtt5AdvancedClientData, P> {
 
-    private Mqtt5IncomingQos1ControlProvider incomingQos1ControlProvider;
-    private Mqtt5OutgoingQos1ControlProvider outgoingQos1ControlProvider;
-    private Mqtt5IncomingQos2ControlProvider incomingQos2ControlProvider;
-    private Mqtt5OutgoingQos2ControlProvider outgoingQos2ControlProvider;
+    private @Nullable Mqtt5IncomingQos1Interceptor incomingQos1Interceptor;
+    private @Nullable Mqtt5OutgoingQos1Interceptor outgoingQos1Interceptor;
+    private @Nullable Mqtt5IncomingQos2Interceptor incomingQos2Interceptor;
+    private @Nullable Mqtt5OutgoingQos2Interceptor outgoingQos2Interceptor;
 
-    @NotNull
-    public Mqtt5AdvancedClientDataBuilder incomingQos1ControlProvider(
-            @NotNull final Mqtt5IncomingQos1ControlProvider incomingQos1ControlProvider) {
+    public Mqtt5AdvancedClientDataBuilder(final @Nullable Function<? super Mqtt5AdvancedClientData, P> parentConsumer) {
+        super(parentConsumer);
+    }
 
-        this.incomingQos1ControlProvider = incomingQos1ControlProvider;
+    public @NotNull Mqtt5AdvancedClientDataBuilder incomingQos1Interceptor(
+            final @Nullable Mqtt5IncomingQos1Interceptor incomingQos1Interceptor) {
+
+        this.incomingQos1Interceptor = incomingQos1Interceptor;
         return this;
     }
 
-    @NotNull
-    public Mqtt5AdvancedClientDataBuilder outgoingQos1ControlProvider(
-            @NotNull final Mqtt5OutgoingQos1ControlProvider outgoingQos1ControlProvider) {
+    public @NotNull Mqtt5AdvancedClientDataBuilder outgoingQos1Interceptor(
+            final @Nullable Mqtt5OutgoingQos1Interceptor outgoingQos1Interceptor) {
 
-        this.outgoingQos1ControlProvider = outgoingQos1ControlProvider;
+        this.outgoingQos1Interceptor = outgoingQos1Interceptor;
         return this;
     }
 
-    @NotNull
-    public Mqtt5AdvancedClientDataBuilder incomingQos2ControlProvider(
-            @NotNull final Mqtt5IncomingQos2ControlProvider incomingQos2ControlProvider) {
+    public @NotNull Mqtt5AdvancedClientDataBuilder incomingQos2Interceptor(
+            final @Nullable Mqtt5IncomingQos2Interceptor incomingQos2Interceptor) {
 
-        this.incomingQos2ControlProvider = incomingQos2ControlProvider;
+        this.incomingQos2Interceptor = incomingQos2Interceptor;
         return this;
     }
 
-    @NotNull
-    public Mqtt5AdvancedClientDataBuilder outgoingQos2ControlProvider(
-            @NotNull final Mqtt5OutgoingQos2ControlProvider outgoingQos2ControlProvider) {
+    public @NotNull Mqtt5AdvancedClientDataBuilder outgoingQos2Interceptor(
+            final @Nullable Mqtt5OutgoingQos2Interceptor outgoingQos2Interceptor) {
 
-        this.outgoingQos2ControlProvider = outgoingQos2ControlProvider;
+        this.outgoingQos2Interceptor = outgoingQos2Interceptor;
         return this;
     }
 
-    @NotNull
-    public Mqtt5AdvancedClientData builder() {
-        return new MqttAdvancedClientData(incomingQos1ControlProvider, outgoingQos1ControlProvider,
-                incomingQos2ControlProvider, outgoingQos2ControlProvider);
+    @Override
+    public @NotNull Mqtt5AdvancedClientData build() {
+        return new MqttAdvancedClientData(incomingQos1Interceptor, outgoingQos1Interceptor, incomingQos2Interceptor,
+                outgoingQos2Interceptor);
     }
 
 }

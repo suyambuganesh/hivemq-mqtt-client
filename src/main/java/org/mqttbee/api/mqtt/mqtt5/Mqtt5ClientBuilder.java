@@ -24,6 +24,7 @@ import org.mqttbee.api.mqtt.*;
 import org.mqttbee.api.mqtt.datatypes.MqttClientIdentifier;
 import org.mqttbee.api.mqtt.mqtt3.Mqtt3ClientBuilder;
 import org.mqttbee.api.mqtt.mqtt5.advanced.Mqtt5AdvancedClientData;
+import org.mqttbee.api.mqtt.mqtt5.advanced.Mqtt5AdvancedClientDataBuilder;
 import org.mqttbee.mqtt.MqttClientData;
 import org.mqttbee.mqtt.MqttClientExecutorConfigImpl;
 import org.mqttbee.mqtt.MqttVersion;
@@ -39,12 +40,12 @@ public class Mqtt5ClientBuilder extends MqttClientBuilder {
 
     private boolean followRedirects = false;
     private boolean allowServerReAuth = false;
-    private MqttAdvancedClientData advancedClientData;
+    private @Nullable MqttAdvancedClientData advancedClientData;
 
     public Mqtt5ClientBuilder(
-            @NotNull final MqttClientIdentifierImpl identifier, @NotNull final String serverHost, final int serverPort,
-            @Nullable final MqttClientSslConfig sslConfig, @Nullable final MqttWebSocketConfig webSocketConfig,
-            @Nullable final MqttClientExecutorConfigImpl executorConfig) {
+            final @NotNull MqttClientIdentifierImpl identifier, final @NotNull String serverHost, final int serverPort,
+            final @Nullable MqttClientSslConfig sslConfig, final @Nullable MqttWebSocketConfig webSocketConfig,
+            final @Nullable MqttClientExecutorConfigImpl executorConfig) {
 
         Preconditions.checkNotNull(identifier, "Identifier must not be null.");
         Preconditions.checkNotNull(serverHost, "Server host must not be null.");
@@ -57,126 +58,111 @@ public class Mqtt5ClientBuilder extends MqttClientBuilder {
         this.executorConfig = executorConfig;
     }
 
-    @NotNull
     @Override
-    public Mqtt5ClientBuilder identifier(@NotNull final String identifier) {
+    public @NotNull Mqtt5ClientBuilder identifier(final @NotNull String identifier) {
         super.identifier(identifier);
         return this;
     }
 
-    @NotNull
     @Override
-    public Mqtt5ClientBuilder identifier(@NotNull final MqttClientIdentifier identifier) {
+    public @NotNull Mqtt5ClientBuilder identifier(final @NotNull MqttClientIdentifier identifier) {
         super.identifier(identifier);
         return this;
     }
 
-    @NotNull
     @Override
-    public Mqtt5ClientBuilder serverHost(@NotNull final String host) {
+    public @NotNull Mqtt5ClientBuilder serverHost(final @NotNull String host) {
         super.serverHost(host);
         return this;
     }
 
-    @NotNull
     @Override
-    public Mqtt5ClientBuilder serverPort(final int port) {
+    public @NotNull Mqtt5ClientBuilder serverPort(final int port) {
         super.serverPort(port);
         return this;
     }
 
-    @NotNull
     @Override
-    public Mqtt5ClientBuilder useSslWithDefaultConfig() {
+    public @NotNull Mqtt5ClientBuilder useSslWithDefaultConfig() {
         super.useSslWithDefaultConfig();
         return this;
     }
 
-    @NotNull
     @Override
-    public Mqtt5ClientBuilder useSsl(@NotNull final MqttClientSslConfig sslConfig) {
+    public @NotNull Mqtt5ClientBuilder useSsl(final @NotNull MqttClientSslConfig sslConfig) {
         super.useSsl(sslConfig);
         return this;
     }
 
-    @NotNull
     @Override
-    public MqttClientSslConfigBuilder<? extends Mqtt5ClientBuilder> useSsl() {
+    public @NotNull MqttClientSslConfigBuilder<? extends Mqtt5ClientBuilder> useSsl() {
         return new MqttClientSslConfigBuilder<>(this::useSsl);
     }
 
-    @NotNull
     @Override
-    public Mqtt5ClientBuilder useWebSocketWithDefaultConfig() {
+    public @NotNull Mqtt5ClientBuilder useWebSocketWithDefaultConfig() {
         super.useWebSocketWithDefaultConfig();
         return this;
     }
 
-    @NotNull
     @Override
-    public Mqtt5ClientBuilder useWebSocket(@NotNull final MqttWebSocketConfig webSocketConfig) {
+    public @NotNull Mqtt5ClientBuilder useWebSocket(final @NotNull MqttWebSocketConfig webSocketConfig) {
         super.useWebSocket(webSocketConfig);
         return this;
     }
 
-    @NotNull
     @Override
-    public MqttWebSocketConfigBuilder<? extends Mqtt5ClientBuilder> useWebSocket() {
+    public @NotNull MqttWebSocketConfigBuilder<? extends Mqtt5ClientBuilder> useWebSocket() {
         return new MqttWebSocketConfigBuilder<>(this::useWebSocket);
     }
 
-    @NotNull
     @Override
-    public Mqtt5ClientBuilder executorConfig(@NotNull final MqttClientExecutorConfig executorConfig) {
+    public @NotNull Mqtt5ClientBuilder executorConfig(final @NotNull MqttClientExecutorConfig executorConfig) {
         super.executorConfig(executorConfig);
         return this;
     }
 
-    @NotNull
     @Override
-    public MqttClientExecutorConfigBuilder<? extends Mqtt5ClientBuilder> executorConfig() {
+    public @NotNull MqttClientExecutorConfigBuilder<? extends Mqtt5ClientBuilder> executorConfig() {
         return new MqttClientExecutorConfigBuilder<>(this::executorConfig);
     }
 
-    @NotNull
     @Override
-    public Mqtt3ClientBuilder useMqttVersion3() {
+    public @NotNull Mqtt3ClientBuilder useMqttVersion3() {
         throw new UnsupportedOperationException(
                 "Switching MQTT Version is not allowed. Please call useMqttVersion3/5 only once.");
     }
 
-    @NotNull
     @Override
-    public Mqtt5ClientBuilder useMqttVersion5() {
+    public @NotNull Mqtt5ClientBuilder useMqttVersion5() {
         return this;
     }
 
-    @NotNull
-    public Mqtt5ClientBuilder followRedirects(final boolean followRedirects) {
+    public @NotNull Mqtt5ClientBuilder followRedirects(final boolean followRedirects) {
         this.followRedirects = followRedirects;
         return this;
     }
 
-    @NotNull
-    public Mqtt5ClientBuilder allowServerReAuth(final boolean allowServerReAuth) {
+    public @NotNull Mqtt5ClientBuilder allowServerReAuth(final boolean allowServerReAuth) {
         this.allowServerReAuth = allowServerReAuth;
         return this;
     }
 
-    @NotNull
-    public Mqtt5ClientBuilder advancedClientData(@Nullable final Mqtt5AdvancedClientData advancedClientData) {
+    public @NotNull Mqtt5ClientBuilder advanced(final @Nullable Mqtt5AdvancedClientData advancedClientData) {
         this.advancedClientData =
                 MustNotBeImplementedUtil.checkNullOrNotImplemented(advancedClientData, MqttAdvancedClientData.class);
         return this;
     }
 
-    @NotNull
-    public Mqtt5Client buildReactive() {
+    public @NotNull Mqtt5AdvancedClientDataBuilder<? extends Mqtt5ClientBuilder> advanced() {
+        return new Mqtt5AdvancedClientDataBuilder<>(this::advanced);
+    }
+
+    public @NotNull Mqtt5Client buildReactive() {
         return new Mqtt5ClientImpl(buildClientData());
     }
 
-    @NotNull
-    private MqttClientData buildClientData() {
+    private @NotNull MqttClientData buildClientData() {
         return new MqttClientData(MqttVersion.MQTT_5_0, identifier, serverHost, serverPort, sslConfig, webSocketConfig,
                 followRedirects, allowServerReAuth, MqttClientExecutorConfigImpl.orDefault(executorConfig),
                 advancedClientData);
