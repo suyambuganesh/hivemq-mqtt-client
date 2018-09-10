@@ -30,36 +30,32 @@ import org.mqttbee.mqtt.util.MqttBuilderUtil;
 import org.mqttbee.util.FluentBuilder;
 import org.mqttbee.util.UnsignedDataTypes;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-
-import static org.mqttbee.api.mqtt.mqtt5.message.disconnect.Mqtt5DisconnectReasonCode.DISCONNECT_WITH_WILL_MESSAGE;
-import static org.mqttbee.api.mqtt.mqtt5.message.disconnect.Mqtt5DisconnectReasonCode.NORMAL_DISCONNECTION;
 
 /**
  * @author Silvio Giebl
  */
 public class Mqtt5DisconnectBuilder<P> extends FluentBuilder<Mqtt5Disconnect, P> {
 
-    private boolean withWillMessage = false;
+    private @NotNull Mqtt5DisconnectReasonCode reasonCode = MqttDisconnect.DEFAULT_REASON_CODE;
     private long sessionExpiryIntervalSeconds = MqttDisconnect.SESSION_EXPIRY_INTERVAL_FROM_CONNECT;
-    private MqttUTF8StringImpl serverReference;
-    private MqttUTF8StringImpl reasonString;
-    private MqttUserPropertiesImpl userProperties = MqttUserPropertiesImpl.NO_USER_PROPERTIES;
+    private @Nullable MqttUTF8StringImpl serverReference;
+    private @Nullable MqttUTF8StringImpl reasonString;
+    private @NotNull MqttUserPropertiesImpl userProperties = MqttUserPropertiesImpl.NO_USER_PROPERTIES;
 
     public Mqtt5DisconnectBuilder(@Nullable final Function<? super Mqtt5Disconnect, P> parentConsumer) {
         super(parentConsumer);
     }
 
-    @NotNull
-    public Mqtt5DisconnectBuilder<P> willMessage(final boolean withWillMessage) {
-        this.withWillMessage = withWillMessage;
+    public @NotNull Mqtt5DisconnectBuilder<P> reasonCode(final @NotNull Mqtt5DisconnectReasonCode reasonCode) {
+        this.reasonCode = Objects.requireNonNull(reasonCode, "Reason Code must not be null");
         return this;
     }
 
-    @NotNull
-    public Mqtt5DisconnectBuilder<P> sessionExpiryInterval(
-            final long sessionExpiryInterval, @NotNull final TimeUnit timeUnit) {
+    public @NotNull Mqtt5DisconnectBuilder<P> sessionExpiryInterval(
+            final long sessionExpiryInterval, final @NotNull TimeUnit timeUnit) {
 
         final long sessionExpiryIntervalSeconds = timeUnit.toSeconds(sessionExpiryInterval);
         Preconditions.checkArgument(UnsignedDataTypes.isUnsignedInt(sessionExpiryIntervalSeconds),
@@ -70,46 +66,37 @@ public class Mqtt5DisconnectBuilder<P> extends FluentBuilder<Mqtt5Disconnect, P>
         return this;
     }
 
-    @NotNull
-    public Mqtt5DisconnectBuilder<P> serverReference(@Nullable final String serverReference) {
+    public @NotNull Mqtt5DisconnectBuilder<P> serverReference(final @Nullable String serverReference) {
         this.serverReference = MqttBuilderUtil.stringOrNull(serverReference);
         return this;
     }
 
-    @NotNull
-    public Mqtt5DisconnectBuilder<P> serverReference(@Nullable final MqttUTF8String serverReference) {
+    public @NotNull Mqtt5DisconnectBuilder<P> serverReference(final @Nullable MqttUTF8String serverReference) {
         this.serverReference = MqttBuilderUtil.stringOrNull(serverReference);
         return this;
     }
 
-    @NotNull
-    public Mqtt5DisconnectBuilder<P> reasonString(@Nullable final String reasonString) {
+    public @NotNull Mqtt5DisconnectBuilder<P> reasonString(final @Nullable String reasonString) {
         this.reasonString = MqttBuilderUtil.stringOrNull(reasonString);
         return this;
     }
 
-    @NotNull
-    public Mqtt5DisconnectBuilder<P> reasonString(@Nullable final MqttUTF8String reasonString) {
+    public @NotNull Mqtt5DisconnectBuilder<P> reasonString(final @Nullable MqttUTF8String reasonString) {
         this.reasonString = MqttBuilderUtil.stringOrNull(reasonString);
         return this;
     }
 
-    @NotNull
-    public Mqtt5DisconnectBuilder<P> userProperties(@NotNull final Mqtt5UserProperties userProperties) {
+    public @NotNull Mqtt5DisconnectBuilder<P> userProperties(final @NotNull Mqtt5UserProperties userProperties) {
         this.userProperties = MqttBuilderUtil.userProperties(userProperties);
         return this;
     }
 
-    @NotNull
-    public Mqtt5UserPropertiesBuilder<? extends Mqtt5DisconnectBuilder<P>> userProperties() {
+    public @NotNull Mqtt5UserPropertiesBuilder<? extends Mqtt5DisconnectBuilder<P>> userProperties() {
         return new Mqtt5UserPropertiesBuilder<>(this::userProperties);
     }
 
-    @NotNull
     @Override
-    public Mqtt5Disconnect build() {
-        final Mqtt5DisconnectReasonCode reasonCode =
-                withWillMessage ? DISCONNECT_WITH_WILL_MESSAGE : NORMAL_DISCONNECTION;
+    public @NotNull Mqtt5Disconnect build() {
         return new MqttDisconnect(
                 reasonCode, sessionExpiryIntervalSeconds, serverReference, reasonString, userProperties);
     }
