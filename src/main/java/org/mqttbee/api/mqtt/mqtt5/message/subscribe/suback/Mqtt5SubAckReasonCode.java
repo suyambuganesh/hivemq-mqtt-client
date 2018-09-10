@@ -48,7 +48,7 @@ public enum Mqtt5SubAckReasonCode implements Mqtt5ReasonCode {
         this.code = code;
     }
 
-    Mqtt5SubAckReasonCode(@NotNull final MqttCommonReasonCode reasonCode) {
+    Mqtt5SubAckReasonCode(final @NotNull MqttCommonReasonCode reasonCode) {
         this(reasonCode.getCode());
     }
 
@@ -64,10 +64,9 @@ public enum Mqtt5SubAckReasonCode implements Mqtt5ReasonCode {
      *
      * @param code the byte code.
      * @return the SUBACK Reason Code belonging to the given byte code or null if the byte code is not a valid SUBACK
-     * Reason Code code.
+     *         Reason Code code.
      */
-    @Nullable
-    public static Mqtt5SubAckReasonCode fromCode(final int code) {
+    public static @Nullable Mqtt5SubAckReasonCode fromCode(final int code) {
         for (final Mqtt5SubAckReasonCode reasonCode : values()) {
             if (reasonCode.code == code) {
                 return reasonCode;

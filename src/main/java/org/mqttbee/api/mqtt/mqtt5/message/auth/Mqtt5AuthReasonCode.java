@@ -39,7 +39,7 @@ public enum Mqtt5AuthReasonCode implements Mqtt5ReasonCode {
         this.code = code;
     }
 
-    Mqtt5AuthReasonCode(@NotNull final MqttCommonReasonCode reasonCode) {
+    Mqtt5AuthReasonCode(final @NotNull MqttCommonReasonCode reasonCode) {
         this(reasonCode.getCode());
     }
 
@@ -55,10 +55,9 @@ public enum Mqtt5AuthReasonCode implements Mqtt5ReasonCode {
      *
      * @param code the byte code.
      * @return the AUTH Reason Code belonging to the given byte code or null if the byte code is not a valid AUTH Reason
-     * Code code.
+     *         Code code.
      */
-    @Nullable
-    public static Mqtt5AuthReasonCode fromCode(final int code) {
+    public static @Nullable Mqtt5AuthReasonCode fromCode(final int code) {
         for (final Mqtt5AuthReasonCode reasonCode : values()) {
             if (reasonCode.code == code) {
                 return reasonCode;
@@ -67,4 +66,13 @@ public enum Mqtt5AuthReasonCode implements Mqtt5ReasonCode {
         return null;
     }
 
+    @Override
+    public boolean canBeSentByServer() {
+        return this != REAUTHENTICATE;
+    }
+
+    @Override
+    public boolean canBeSentByClient() {
+        return this != SUCCESS;
+    }
 }

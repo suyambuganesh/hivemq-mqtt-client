@@ -22,6 +22,8 @@ import org.jetbrains.annotations.Nullable;
 import org.mqttbee.api.mqtt.mqtt5.message.Mqtt5ReasonCode;
 import org.mqttbee.mqtt.message.MqttCommonReasonCode;
 
+import java.util.EnumSet;
+
 /**
  * MQTT Reason Codes that can be used in PUBACK packets according to the MQTT 5 specification.
  *
@@ -45,7 +47,7 @@ public enum Mqtt5PubAckReasonCode implements Mqtt5ReasonCode {
         this.code = code;
     }
 
-    Mqtt5PubAckReasonCode(@NotNull final MqttCommonReasonCode reasonCode) {
+    Mqtt5PubAckReasonCode(final @NotNull MqttCommonReasonCode reasonCode) {
         this(reasonCode.getCode());
     }
 
@@ -61,10 +63,9 @@ public enum Mqtt5PubAckReasonCode implements Mqtt5ReasonCode {
      *
      * @param code the byte code.
      * @return the PUBACK Reason Code belonging to the given byte code or null if the byte code is not a valid PUBACK
-     * Reason Code code.
+     *         Reason Code code.
      */
-    @Nullable
-    public static Mqtt5PubAckReasonCode fromCode(final int code) {
+    public static @Nullable Mqtt5PubAckReasonCode fromCode(final int code) {
         for (final Mqtt5PubAckReasonCode reasonCode : values()) {
             if (reasonCode.code == code) {
                 return reasonCode;
@@ -73,4 +74,17 @@ public enum Mqtt5PubAckReasonCode implements Mqtt5ReasonCode {
         return null;
     }
 
+    private static final @NotNull EnumSet<Mqtt5PubAckReasonCode> BY_USER =
+            EnumSet.of(SUCCESS, UNSPECIFIED_ERROR, IMPLEMENTATION_SPECIFIC_ERROR, NOT_AUTHORIZED, TOPIC_NAME_INVALID,
+                    QUOTA_EXCEEDED, PAYLOAD_FORMAT_INVALID);
+
+    @Override
+    public boolean canBeSentByClient() {
+        return this != NO_MATCHING_SUBSCRIBERS;
+    }
+
+    @Override
+    public boolean canBeSetByUser() {
+        return BY_USER.contains(this);
+    }
 }
