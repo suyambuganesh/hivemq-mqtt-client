@@ -17,6 +17,7 @@
 
 package org.mqttbee.mqtt.codec.decoder.mqtt3;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mqttbee.api.mqtt.mqtt3.message.Mqtt3MessageType;
 import org.mqttbee.mqtt.codec.decoder.MqttMessageDecoder;
@@ -34,15 +35,15 @@ import javax.inject.Singleton;
 @Singleton
 public class Mqtt3ClientMessageDecoders implements MqttMessageDecoders {
 
-    private final MqttMessageDecoder[] decoders;
+    private final @NotNull MqttMessageDecoder[] decoders;
 
     @Inject
     Mqtt3ClientMessageDecoders(
-            final Mqtt3ConnAckDecoder connAckDecoder, final Mqtt3PublishDecoder publishDecoder,
-            final Mqtt3PubAckDecoder pubAckDecoder, final Mqtt3PubRecDecoder pubRecDecoder,
-            final Mqtt3PubRelDecoder pubRelDecoder, final Mqtt3PubCompDecoder pubCompDecoder,
-            final Mqtt3SubAckDecoder subAckDecoder, final Mqtt3UnsubAckDecoder unsubAckDecoder,
-            final MqttPingRespDecoder pingRespDecoder) {
+            final @NotNull Mqtt3ConnAckDecoder connAckDecoder, final @NotNull Mqtt3PublishDecoder publishDecoder,
+            final @NotNull Mqtt3PubAckDecoder pubAckDecoder, final @NotNull Mqtt3PubRecDecoder pubRecDecoder,
+            final @NotNull Mqtt3PubRelDecoder pubRelDecoder, final @NotNull Mqtt3PubCompDecoder pubCompDecoder,
+            final @NotNull Mqtt3SubAckDecoder subAckDecoder, final @NotNull Mqtt3UnsubAckDecoder unsubAckDecoder,
+            final @NotNull MqttPingRespDecoder pingRespDecoder) {
 
         decoders = new MqttMessageDecoder[Mqtt3MessageType.values().length];
         decoders[Mqtt3MessageType.CONNACK.getCode()] = connAckDecoder;
@@ -56,9 +57,8 @@ public class Mqtt3ClientMessageDecoders implements MqttMessageDecoders {
         decoders[Mqtt3MessageType.PINGRESP.getCode()] = pingRespDecoder;
     }
 
-    @Nullable
     @Override
-    public MqttMessageDecoder get(final int code) {
+    public @Nullable MqttMessageDecoder get(final int code) {
         if (code < 0 || code >= decoders.length) {
             return null;
         }
