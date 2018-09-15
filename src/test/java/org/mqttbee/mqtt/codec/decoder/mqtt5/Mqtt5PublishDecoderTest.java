@@ -28,7 +28,6 @@ import org.mqttbee.api.mqtt.mqtt5.message.disconnect.Mqtt5Disconnect;
 import org.mqttbee.api.mqtt.mqtt5.message.disconnect.Mqtt5DisconnectReasonCode;
 import org.mqttbee.api.mqtt.mqtt5.message.publish.Mqtt5PayloadFormatIndicator;
 import org.mqttbee.api.mqtt.mqtt5.message.publish.TopicAliasUsage;
-import org.mqttbee.mqtt.codec.decoder.MqttDecoderFlag;
 import org.mqttbee.mqtt.datatypes.MqttUserPropertyImpl;
 import org.mqttbee.mqtt.message.publish.MqttPublish;
 import org.mqttbee.mqtt.message.publish.MqttStatefulPublish;
@@ -367,7 +366,7 @@ class Mqtt5PublishDecoderTest extends AbstractMqtt5DecoderTest {
 
     @Test
     void decode_payloadFormatIndicatorUtf8() {
-        setFlag(MqttDecoderFlag.VALIDATE_PAYLOAD_FORMAT);
+        validatePayloadFormat();
         final byte[] encoded = {
                 // fixed header
                 //   type, flags
@@ -394,7 +393,7 @@ class Mqtt5PublishDecoderTest extends AbstractMqtt5DecoderTest {
 
     @Test
     void decode_invalidPayloadFormatIndicator_returnsNull() {
-        setFlag(MqttDecoderFlag.VALIDATE_PAYLOAD_FORMAT);
+        validatePayloadFormat();
         final byte[] encoded = {
                 // fixed header
                 //   type, flags
@@ -437,7 +436,7 @@ class Mqtt5PublishDecoderTest extends AbstractMqtt5DecoderTest {
 
     @Test
     void decode_PayloadUtf8NotWellFormed_returnsNull() {
-        setFlag(MqttDecoderFlag.VALIDATE_PAYLOAD_FORMAT);
+        validatePayloadFormat();
         final byte[] encoded = {
                 // fixed header
                 //   type, flags
@@ -1195,7 +1194,7 @@ class Mqtt5PublishDecoderTest extends AbstractMqtt5DecoderTest {
                 //     payload format indicator
                 0x01, 0
         };
-        decodeNok(encoded, TOPIC_ALIAS_INVALID);
+        decodeNok(encoded, PROTOCOL_ERROR);
     }
 
     @Test
