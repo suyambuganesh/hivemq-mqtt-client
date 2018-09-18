@@ -31,37 +31,35 @@ public class MqttClientExecutorConfigImpl implements MqttClientExecutorConfig {
 
     public static final int DEFAULT_NETTY_THREADS = 0;
 
-    @NotNull
-    public static MqttClientExecutorConfigImpl orDefault(@Nullable final MqttClientExecutorConfigImpl executorConfig) {
+    public static @NotNull MqttClientExecutorConfigImpl orDefault(
+            @Nullable final MqttClientExecutorConfigImpl executorConfig) {
+
         return (executorConfig == null) ? MqttClientExecutorConfigImpl.getDefault() : executorConfig;
     }
 
-    @NotNull
-    public static MqttClientExecutorConfigImpl getDefault() {
+    public static @NotNull MqttClientExecutorConfigImpl getDefault() {
         return new MqttClientExecutorConfigImpl(
                 MqttBeeComponent.INSTANCE.nettyEventLoopProvider().getEventLoopGroup(null, DEFAULT_NETTY_THREADS),
                 DEFAULT_APPLICATION_SCHEDULER);
     }
 
-    private final MultithreadEventLoopGroup nettyEventLoopGroup;
-    private final Scheduler applicationScheduler;
+    private final @NotNull MultithreadEventLoopGroup nettyEventLoopGroup;
+    private final @Nullable Scheduler applicationScheduler;
 
     public MqttClientExecutorConfigImpl(
-            @NotNull final MultithreadEventLoopGroup nettyEventLoopGroup,
-            @NotNull final Scheduler applicationScheduler) {
+            final @NotNull MultithreadEventLoopGroup nettyEventLoopGroup,
+            final @Nullable Scheduler applicationScheduler) {
 
         this.nettyEventLoopGroup = nettyEventLoopGroup;
         this.applicationScheduler = applicationScheduler;
     }
 
-    @NotNull
     @Override
-    public MultithreadEventLoopGroup getNettyEventLoopGroup() {
+    public @NotNull MultithreadEventLoopGroup getNettyEventLoopGroup() {
         return nettyEventLoopGroup;
     }
 
-    @NotNull
-    public Scheduler getApplicationScheduler() {
+    public @Nullable Scheduler getApplicationScheduler() {
         return applicationScheduler;
     }
 

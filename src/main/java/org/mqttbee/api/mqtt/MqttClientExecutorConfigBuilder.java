@@ -36,41 +36,38 @@ import static org.mqttbee.api.mqtt.MqttClientExecutorConfig.DEFAULT_APPLICATION_
  */
 public class MqttClientExecutorConfigBuilder<P> extends FluentBuilder<MqttClientExecutorConfig, P> {
 
-    private Executor nettyExecutor;
+    private @Nullable Executor nettyExecutor;
     private int nettyThreads = MqttClientExecutorConfigImpl.DEFAULT_NETTY_THREADS;
-    private Scheduler applicationScheduler = DEFAULT_APPLICATION_SCHEDULER;
+    private @Nullable Scheduler applicationScheduler = DEFAULT_APPLICATION_SCHEDULER;
 
     public MqttClientExecutorConfigBuilder(
-            @Nullable final Function<? super MqttClientExecutorConfig, P> parentConsumer) {
+            final @Nullable Function<? super MqttClientExecutorConfig, P> parentConsumer) {
 
         super(parentConsumer);
     }
 
-    @NotNull
-    public MqttClientExecutorConfigBuilder<P> nettyExecutor(@NotNull final Executor nettyExecutor) {
+    public @NotNull MqttClientExecutorConfigBuilder<P> nettyExecutor(final @NotNull Executor nettyExecutor) {
         Preconditions.checkNotNull(nettyExecutor, "Netty executor must not be null.");
         this.nettyExecutor = nettyExecutor;
         return this;
     }
 
-    @NotNull
-    public MqttClientExecutorConfigBuilder<P> nettyThreads(final int nettyThreads) {
+    public @NotNull MqttClientExecutorConfigBuilder<P> nettyThreads(final int nettyThreads) {
         Preconditions.checkArgument(nettyThreads > 0, "Number of Netty threads must be bigger than 0. Found: %s.",
                 nettyThreads);
         this.nettyThreads = nettyThreads;
         return this;
     }
 
-    @NotNull
-    public MqttClientExecutorConfigBuilder<P> applicationScheduler(@NotNull final Scheduler applicationScheduler) {
-        Preconditions.checkNotNull(applicationScheduler, "Application scheduler must not be null.");
+    public @NotNull MqttClientExecutorConfigBuilder<P> applicationScheduler(
+            final @Nullable Scheduler applicationScheduler) {
+
         this.applicationScheduler = applicationScheduler;
         return this;
     }
 
-    @NotNull
     @Override
-    public MqttClientExecutorConfig build() {
+    public @NotNull MqttClientExecutorConfig build() {
         final MultithreadEventLoopGroup eventLoopGroup =
                 MqttBeeComponent.INSTANCE.nettyEventLoopProvider().getEventLoopGroup(nettyExecutor, nettyThreads);
         return new MqttClientExecutorConfigImpl(eventLoopGroup, applicationScheduler);

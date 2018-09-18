@@ -71,8 +71,7 @@ public class Mqtt5ClientImpl implements Mqtt5Client {
     public @NotNull Single<Mqtt5ConnAck> connect(final @NotNull Mqtt5Connect connect) {
         final MqttConnect mqttConnect = MustNotBeImplementedUtil.checkNotImplemented(connect, MqttConnect.class);
 
-        return new MqttConnAckSingle(clientData, mqttConnect).observeOn(
-                clientData.getExecutorConfig().getApplicationScheduler());
+        return observeOn(new MqttConnAckSingle(clientData, mqttConnect));
     }
 
     @Override
@@ -80,8 +79,7 @@ public class Mqtt5ClientImpl implements Mqtt5Client {
         final MqttSubscribe mqttSubscribe =
                 MustNotBeImplementedUtil.checkNotImplemented(subscribe, MqttSubscribe.class);
 
-        return new MqttSubAckSingle(mqttSubscribe, clientData).observeOn(
-                clientData.getExecutorConfig().getApplicationScheduler());
+        return observeOn(new MqttSubAckSingle(mqttSubscribe, clientData));
     }
 
     @Override
@@ -92,8 +90,7 @@ public class Mqtt5ClientImpl implements Mqtt5Client {
                 MustNotBeImplementedUtil.checkNotImplemented(subscribe, MqttSubscribe.class);
 
         final Flowable<Mqtt5SubscribeResult> subscriptionFlowable =
-                new MqttSubscriptionFlowable(mqttSubscribe, clientData).observeOn(
-                        clientData.getExecutorConfig().getApplicationScheduler());
+                observeOn(new MqttSubscriptionFlowable(mqttSubscribe, clientData));
         return new FlowableWithSingleSplit<>(subscriptionFlowable, Mqtt5SubAck.class, Mqtt5Publish.class);
     }
 
@@ -101,8 +98,7 @@ public class Mqtt5ClientImpl implements Mqtt5Client {
     public @NotNull Flowable<Mqtt5Publish> publishes(final @NotNull MqttGlobalPublishFlowType type) {
         Preconditions.checkNotNull(type, "Global publish flow type must not be null.");
 
-        return new MqttGlobalIncomingPublishFlowable(type, clientData).observeOn(
-                clientData.getExecutorConfig().getApplicationScheduler());
+        return observeOn(new MqttGlobalIncomingPublishFlowable(type, clientData));
     }
 
     @Override
@@ -110,20 +106,17 @@ public class Mqtt5ClientImpl implements Mqtt5Client {
         final MqttUnsubscribe mqttUnsubscribe =
                 MustNotBeImplementedUtil.checkNotImplemented(unsubscribe, MqttUnsubscribe.class);
 
-        return new MqttUnsubAckSingle(mqttUnsubscribe, clientData).observeOn(
-                clientData.getExecutorConfig().getApplicationScheduler());
+        return observeOn(new MqttUnsubAckSingle(mqttUnsubscribe, clientData));
     }
 
     @Override
     public @NotNull Flowable<Mqtt5PublishResult> publish(final @NotNull Flowable<Mqtt5Publish> publishFlowable) {
-        return new MqttIncomingAckFlowable(publishFlowable.map(PUBLISH_MAPPER), clientData).observeOn(
-                clientData.getExecutorConfig().getApplicationScheduler());
+        return observeOn(new MqttIncomingAckFlowable(publishFlowable.map(PUBLISH_MAPPER), clientData));
     }
 
     @Override
     public @NotNull Completable reauth() {
-        return new MqttReAuthCompletable(clientData).observeOn(
-                clientData.getExecutorConfig().getApplicationScheduler());
+        return observeOn(new MqttReAuthCompletable(clientData));
     }
 
     @Override
@@ -131,13 +124,33 @@ public class Mqtt5ClientImpl implements Mqtt5Client {
         final MqttDisconnect mqttDisconnect =
                 MustNotBeImplementedUtil.checkNotImplemented(disconnect, MqttDisconnect.class);
 
-        return new MqttDisconnectCompletable(clientData, mqttDisconnect).observeOn(
-                clientData.getExecutorConfig().getApplicationScheduler());
+        return observeOn(new MqttDisconnectCompletable(clientData, mqttDisconnect));
     }
 
     @Override
     public @NotNull MqttClientData getClientData() {
         return clientData;
+    }
+
+    private <T> @NotNull Flowable<T> observeOn(final @NotNull Flowable<T> flowable) {
+        if (clientData.getExecutorConfig().getApplicationScheduler() != null) {
+            return flowable.observeOn(clientData.getExecutorConfig().getApplicationScheduler());
+        }
+        return flowable;
+    }
+
+    private <T> @NotNull Single<T> observeOn(final @NotNull Single<T> single) {
+        if (clientData.getExecutorConfig().getApplicationScheduler() != null) {
+            return single.observeOn(clientData.getExecutorConfig().getApplicationScheduler());
+        }
+        return single;
+    }
+
+    private @NotNull Completable observeOn(final @NotNull Completable completable) {
+        if (clientData.getExecutorConfig().getApplicationScheduler() != null) {
+            return completable.observeOn(clientData.getExecutorConfig().getApplicationScheduler());
+        }
+        return completable;
     }
 
 }

@@ -21,6 +21,7 @@ import io.netty.channel.MultithreadEventLoopGroup;
 import io.reactivex.Scheduler;
 import io.reactivex.schedulers.Schedulers;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.mqttbee.annotations.DoNotImplement;
 
 /**
@@ -29,16 +30,14 @@ import org.mqttbee.annotations.DoNotImplement;
 @DoNotImplement
 public interface MqttClientExecutorConfig {
 
-    Scheduler DEFAULT_APPLICATION_SCHEDULER = Schedulers.computation();
+    @NotNull Scheduler DEFAULT_APPLICATION_SCHEDULER = Schedulers.computation();
 
-    @NotNull
-    static MqttClientExecutorConfigBuilder<Void> builder() {
+    static @NotNull MqttClientExecutorConfigBuilder<Void> builder() {
         return new MqttClientExecutorConfigBuilder<>(null);
     }
 
     @NotNull MultithreadEventLoopGroup getNettyEventLoopGroup();
 
-    @NotNull
-    Scheduler getApplicationScheduler();
+    @Nullable Scheduler getApplicationScheduler();
 
 }
